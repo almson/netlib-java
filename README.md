@@ -231,7 +231,7 @@ Snapshots are distributed on Sonatype's Snapshot Repository, e.g.:
 <dependency>
   <groupId>com.github.fommil.netlib</groupId>
   <artifactId>all</artifactId>
-  <version>1.2-SNAPSHOT</version>
+  <version>1.1</version>
 </dependency>
 ```
 
