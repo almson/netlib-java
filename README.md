@@ -1,3 +1,10 @@
+Updated bundled LAPACK to 3.9.0 and ARPACK to 3.8.0. Works with OpenBLAS on Ubuntu 20.04 and current Arch/Manjaro.
+
+To build on Ubuntu, install gfortran libatlas3-base libatlas-base-dev libopenblas-dev liblapacke-dev
+To build on Arch/Manjaro, install openblas, cblas, lapack
+
+It's possible to build on Arch and use on Ubuntu, but you have to hack the soname with `sudo patchelf --set-soname libblas.so.3 /lib/libblas.so.3` The other way doesn't work since Ubuntu links libcblas.so to the same file as libblas.so.
+
 netlib-java
 ===========
 
