@@ -5,7 +5,7 @@
 // the first thing the cblas_ methods do is to do a reverse
 // lookup for the char and then pass it to the fortran lib!
 
-enum CBLAS_TRANSPOSE getCblasTrans(const char * fortranChar) {
+CBLAS_TRANSPOSE getCblasTrans(const char * fortranChar) {
 	switch (fortranChar[0]) {
 	    case 'N': return CblasNoTrans;
 	    case 'n': return CblasNoTrans;
@@ -15,7 +15,7 @@ enum CBLAS_TRANSPOSE getCblasTrans(const char * fortranChar) {
 	}
 }
 
-enum CBLAS_UPLO getCblasUpLo(const char * fortranChar) {
+CBLAS_UPLO getCblasUpLo(const char * fortranChar) {
 	switch (fortranChar[0]) {
 	    case 'U': return CblasUpper;
 	    case 'u': return CblasUpper;
@@ -25,7 +25,7 @@ enum CBLAS_UPLO getCblasUpLo(const char * fortranChar) {
 	}
 }
 
-enum CBLAS_SIDE getCblasSide(const char * fortranChar) {
+CBLAS_SIDE getCblasSide(const char * fortranChar) {
 	switch (fortranChar[0]) {
 	    case 'L': return CblasLeft;
 	    case 'l': return CblasLeft;
@@ -35,7 +35,7 @@ enum CBLAS_SIDE getCblasSide(const char * fortranChar) {
 	}
 }
 
-enum CBLAS_DIAG getCblasDiag(const char * fortranChar) {
+CBLAS_DIAG getCblasDiag(const char * fortranChar) {
 	switch (fortranChar[0]) {
 	    case 'N': return CblasNonUnit;
 	    case 'n': return CblasNonUnit;

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <jni.h>
+#include <cblas.h>
 
 typedef jobject jfloatw;
 typedef jobject jdoublew;
@@ -10,10 +11,10 @@ typedef jobject jbooleanw;
 
 // convenience methods for dealing with the CBLAS (not BLAS) specific enums
 // our API is using the Fortran-style char* system.
-enum CBLAS_TRANSPOSE getCblasTrans(const char *);
-enum CBLAS_UPLO getCblasUpLo(const char *);
-enum CBLAS_SIDE getCblasSide(const char *);
-enum CBLAS_DIAG getCblasDiag(const char *);
+CBLAS_TRANSPOSE getCblasTrans(const char *);
+CBLAS_UPLO getCblasUpLo(const char *);
+CBLAS_SIDE getCblasSide(const char *);
+CBLAS_DIAG getCblasDiag(const char *);
 
 
 /* Convenience for checking if we ran out of memory */
