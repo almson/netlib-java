@@ -94,7 +94,9 @@
                         <linkerMiddleOption>-shared</linkerMiddleOption>
                         <linkerMiddleOption>-lgfortran</linkerMiddleOption>
                         <linkerMiddleOption>-lblas</linkerMiddleOption>
+                        <linkerMiddleOption>-lcblas</linkerMiddleOption>
                         <linkerMiddleOption>-llapack</linkerMiddleOption>
+                        <linkerMiddleOption>-llapacke</linkerMiddleOption>
                         <linkerMiddleOption>-Wl,-s</linkerMiddleOption>
                         <linkerMiddleOption>-Wl,--version-script=${netlib.src}/symbol.map</linkerMiddleOption>
                         <linkerMiddleOption>-Wl,--gc-sections</linkerMiddleOption>
