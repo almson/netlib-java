@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function dorbdb
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated June 2017
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_dorbdb( int matrix_order, char trans, char signs,
+lapack_int LAPACKE_dorbdb( int matrix_layout, char trans, char signs,
                            lapack_int m, lapack_int p, lapack_int q,
                            double* x11, lapack_int ldx11, double* x12,
                            lapack_int ldx12, double* x21, lapack_int ldx21,
@@ -45,32 +45,35 @@ lapack_int LAPACKE_dorbdb( int matrix_order, char trans, char signs,
     lapack_int lwork = -1;
     double* work = NULL;
     double work_query;
-    lapack_int nrows_x11, nrows_x12, nrows_x21, nrows_x22;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    int lapack_layout;
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_dorbdb", -1 );
         return -1;
     }
+    if( LAPACKE_lsame( trans, 'n' ) && matrix_layout == LAPACK_COL_MAJOR ) {
+        lapack_layout = LAPACK_COL_MAJOR;
+    } else {
+        lapack_layout = LAPACK_ROW_MAJOR;
+    }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    nrows_x11 = ( LAPACKE_lsame( trans, 'n' ) ? p : q);
-    nrows_x12 = ( LAPACKE_lsame( trans, 'n' ) ? p : m-q);
-    nrows_x21 = ( LAPACKE_lsame( trans, 'n' ) ? m-p : q);
-    nrows_x22 = ( LAPACKE_lsame( trans, 'n' ) ? m-p : m-q);
-    if( LAPACKE_dge_nancheck( matrix_order, nrows_x11, q, x11, ldx11 ) ) {
-        return -7;
-    }
-    if( LAPACKE_dge_nancheck( matrix_order, nrows_x12, m-q, x12, ldx12 ) ) {
-        return -9;
-    }
-    if( LAPACKE_dge_nancheck( matrix_order, nrows_x21, q, x21, ldx21 ) ) {
-        return -11;
-    }
-    if( LAPACKE_dge_nancheck( matrix_order, nrows_x22, m-q, x22, ldx22 ) ) {
-        return -13;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        if( LAPACKE_dge_nancheck( lapack_layout, p, q, x11, ldx11 ) ) {
+            return -7;
+        }
+        if( LAPACKE_dge_nancheck( lapack_layout, p, m-q, x12, ldx12 ) ) {
+            return -9;
+        }
+        if( LAPACKE_dge_nancheck( lapack_layout, m-p, q, x21, ldx21 ) ) {
+            return -11;
+        }
+        if( LAPACKE_dge_nancheck( lapack_layout, m-p, m-q, x22, ldx22 ) ) {
+            return -13;
+        }
     }
 #endif
     /* Query optimal working array(s) size */
-    info = LAPACKE_dorbdb_work( matrix_order, trans, signs, m, p, q, x11, ldx11,
+    info = LAPACKE_dorbdb_work( matrix_layout, trans, signs, m, p, q, x11, ldx11,
                                 x12, ldx12, x21, ldx21, x22, ldx22, theta, phi,
                                 taup1, taup2, tauq1, tauq2, &work_query,
                                 lwork );
@@ -85,7 +88,7 @@ lapack_int LAPACKE_dorbdb( int matrix_order, char trans, char signs,
         goto exit_level_0;
     }
     /* Call middle-level interface */
-    info = LAPACKE_dorbdb_work( matrix_order, trans, signs, m, p, q, x11, ldx11,
+    info = LAPACKE_dorbdb_work( matrix_layout, trans, signs, m, p, q, x11, ldx11,
                                 x12, ldx12, x21, ldx21, x22, ldx22, theta, phi,
                                 taup1, taup2, tauq1, tauq2, work, lwork );
     /* Release memory and exit */

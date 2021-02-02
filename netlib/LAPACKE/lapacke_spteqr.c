@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,33 +28,35 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function spteqr
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated November 2015
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_spteqr( int matrix_order, char compz, lapack_int n, float* d,
+lapack_int LAPACKE_spteqr( int matrix_layout, char compz, lapack_int n, float* d,
                            float* e, float* z, lapack_int ldz )
 {
     lapack_int info = 0;
     /* Additional scalars declarations for work arrays */
     lapack_int lwork;
     float* work = NULL;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_spteqr", -1 );
         return -1;
     }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    if( LAPACKE_s_nancheck( n, d, 1 ) ) {
-        return -4;
-    }
-    if( LAPACKE_s_nancheck( n-1, e, 1 ) ) {
-        return -5;
-    }
-    if( LAPACKE_lsame( compz, 'v' ) ) {
-        if( LAPACKE_sge_nancheck( matrix_order, n, n, z, ldz ) ) {
-            return -6;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        if( LAPACKE_s_nancheck( n, d, 1 ) ) {
+            return -4;
+        }
+        if( LAPACKE_s_nancheck( n-1, e, 1 ) ) {
+            return -5;
+        }
+        if( LAPACKE_lsame( compz, 'v' ) ) {
+            if( LAPACKE_sge_nancheck( matrix_layout, n, n, z, ldz ) ) {
+                return -6;
+            }
         }
     }
 #endif
@@ -71,7 +73,7 @@ lapack_int LAPACKE_spteqr( int matrix_order, char compz, lapack_int n, float* d,
         goto exit_level_0;
     }
     /* Call middle-level interface */
-    info = LAPACKE_spteqr_work( matrix_order, compz, n, d, e, z, ldz, work );
+    info = LAPACKE_spteqr_work( matrix_layout, compz, n, d, e, z, ldz, work );
     /* Release memory and exit */
     LAPACKE_free( work );
 exit_level_0:

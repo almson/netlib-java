@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2010, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,9 @@
 #include "lapacke_utils.h"
 
 /* Check a matrix for NaN entries.
- * Since matrix in packed format stored continiously it just required to
+ * Since matrix in packed format stored continuously it just required to
  * check 1d array for NaNs. It doesn't depend upon uplo, transr or
- * matrix_order.
+ * matrix_layout.
  */
 
 lapack_logical LAPACKE_dpf_nancheck( lapack_int n,

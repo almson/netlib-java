@@ -2,24 +2,24 @@
 *
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
 *> \htmlonly
-*> Download DGEBAL + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgebal.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgebal.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgebal.f"> 
+*> Download DGEBAL + dependencies
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgebal.f">
+*> [TGZ]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgebal.f">
+*> [ZIP]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgebal.f">
 *> [TXT]</a>
-*> \endhtmlonly 
+*> \endhtmlonly
 *
 *  Definition:
 *  ===========
 *
 *       SUBROUTINE DGEBAL( JOB, N, A, LDA, ILO, IHI, SCALE, INFO )
-* 
+*
 *       .. Scalar Arguments ..
 *       CHARACTER          JOB
 *       INTEGER            IHI, ILO, INFO, LDA, N
@@ -27,7 +27,7 @@
 *       .. Array Arguments ..
 *       DOUBLE PRECISION   A( LDA, * ), SCALE( * )
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -67,7 +67,7 @@
 *>
 *> \param[in,out] A
 *> \verbatim
-*>          A is DOUBLE array, dimension (LDA,N)
+*>          A is DOUBLE PRECISION array, dimension (LDA,N)
 *>          On entry, the input matrix A.
 *>          On exit,  A is overwritten by the balanced matrix.
 *>          If JOB = 'N', A is not referenced.
@@ -94,7 +94,7 @@
 *>
 *> \param[out] SCALE
 *> \verbatim
-*>          SCALE is DOUBLE array, dimension (N)
+*>          SCALE is DOUBLE PRECISION array, dimension (N)
 *>          Details of the permutations and scaling factors applied to
 *>          A.  If P(j) is the index of the row and column interchanged
 *>          with row and column j and D(j) is the scaling factor
@@ -116,12 +116,12 @@
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
-*> \date November 2011
+*> \date June 2017
 *
 *> \ingroup doubleGEcomputational
 *
@@ -160,10 +160,10 @@
 *  =====================================================================
       SUBROUTINE DGEBAL( JOB, N, A, LDA, ILO, IHI, SCALE, INFO )
 *
-*  -- LAPACK computational routine (version 3.4.0) --
+*  -- LAPACK computational routine (version 3.7.1) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
+*     June 2017
 *
 *     .. Scalar Arguments ..
       CHARACTER          JOB
@@ -192,8 +192,8 @@
 *     .. External Functions ..
       LOGICAL            DISNAN, LSAME
       INTEGER            IDAMAX
-      DOUBLE PRECISION   DLAMCH
-      EXTERNAL           DISNAN, LSAME, IDAMAX, DLAMCH
+      DOUBLE PRECISION   DLAMCH, DNRM2
+      EXTERNAL           DISNAN, LSAME, IDAMAX, DLAMCH, DNRM2
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           DSCAL, DSWAP, XERBLA
@@ -201,8 +201,6 @@
 *     .. Intrinsic Functions ..
       INTRINSIC          ABS, MAX, MIN
 *     ..
-*     .. Executable Statements ..
-*
 *     Test the input parameters
 *
       INFO = 0
@@ -312,19 +310,14 @@
       SFMAX1 = ONE / SFMIN1
       SFMIN2 = SFMIN1*SCLFAC
       SFMAX2 = ONE / SFMIN2
+*
   140 CONTINUE
       NOCONV = .FALSE.
 *
       DO 200 I = K, L
-         C = ZERO
-         R = ZERO
 *
-         DO 150 J = K, L
-            IF( J.EQ.I )
-     $         GO TO 150
-            C = C + ABS( A( J, I ) )
-            R = R + ABS( A( I, J ) )
-  150    CONTINUE
+         C = DNRM2( L-K+1, A( K, I ), 1 )
+         R = DNRM2( L-K+1, A( I, K ), LDA )
          ICA = IDAMAX( L, A( 1, I ), 1 )
          CA = ABS( A( ICA, I ) )
          IRA = IDAMAX( N-K+1, A( I, K ), LDA )

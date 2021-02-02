@@ -11,10 +11,10 @@
 #include "cblas_f77.h"
 CBLAS_INDEX cblas_izamax( const int N, const void *X, const int incX)
 {
-   int iamax;
+   CBLAS_INDEX iamax;
 #ifdef F77_INT
    F77_INT F77_N=N, F77_incX=incX;
-#else 
+#else
    #define F77_N N
    #define F77_incX incX
 #endif

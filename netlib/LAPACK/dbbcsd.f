@@ -2,18 +2,18 @@
 *
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
 *> \htmlonly
-*> Download DBBCSD + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dbbcsd.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dbbcsd.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dbbcsd.f"> 
+*> Download DBBCSD + dependencies
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dbbcsd.f">
+*> [TGZ]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dbbcsd.f">
+*> [ZIP]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dbbcsd.f">
 *> [TXT]</a>
-*> \endhtmlonly 
+*> \endhtmlonly
 *
 *  Definition:
 *  ===========
@@ -22,7 +22,7 @@
 *                          THETA, PHI, U1, LDU1, U2, LDU2, V1T, LDV1T,
 *                          V2T, LDV2T, B11D, B11E, B12D, B12E, B21D, B21E,
 *                          B22D, B22E, WORK, LWORK, INFO )
-* 
+*
 *       .. Scalar Arguments ..
 *       CHARACTER          JOBU1, JOBU2, JOBV1T, JOBV2T, TRANS
 *       INTEGER            INFO, LDU1, LDU2, LDV1T, LDV2T, LWORK, M, P, Q
@@ -34,7 +34,7 @@
 *       DOUBLE PRECISION   U1( LDU1, * ), U2( LDU2, * ), V1T( LDV1T, * ),
 *      $                   V2T( LDV2T, * )
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -149,7 +149,7 @@
 *> \param[in,out] U1
 *> \verbatim
 *>          U1 is DOUBLE PRECISION array, dimension (LDU1,P)
-*>          On entry, an LDU1-by-P matrix. On exit, U1 is postmultiplied
+*>          On entry, a P-by-P matrix. On exit, U1 is postmultiplied
 *>          by the left singular vector matrix common to [ B11 ; 0 ] and
 *>          [ B12 0 0 ; 0 -I 0 0 ].
 *> \endverbatim
@@ -157,13 +157,13 @@
 *> \param[in] LDU1
 *> \verbatim
 *>          LDU1 is INTEGER
-*>          The leading dimension of the array U1.
+*>          The leading dimension of the array U1, LDU1 >= MAX(1,P).
 *> \endverbatim
 *>
 *> \param[in,out] U2
 *> \verbatim
 *>          U2 is DOUBLE PRECISION array, dimension (LDU2,M-P)
-*>          On entry, an LDU2-by-(M-P) matrix. On exit, U2 is
+*>          On entry, an (M-P)-by-(M-P) matrix. On exit, U2 is
 *>          postmultiplied by the left singular vector matrix common to
 *>          [ B21 ; 0 ] and [ B22 0 0 ; 0 0 I ].
 *> \endverbatim
@@ -171,13 +171,13 @@
 *> \param[in] LDU2
 *> \verbatim
 *>          LDU2 is INTEGER
-*>          The leading dimension of the array U2.
+*>          The leading dimension of the array U2, LDU2 >= MAX(1,M-P).
 *> \endverbatim
 *>
 *> \param[in,out] V1T
 *> \verbatim
 *>          V1T is DOUBLE PRECISION array, dimension (LDV1T,Q)
-*>          On entry, a LDV1T-by-Q matrix. On exit, V1T is premultiplied
+*>          On entry, a Q-by-Q matrix. On exit, V1T is premultiplied
 *>          by the transpose of the right singular vector
 *>          matrix common to [ B11 ; 0 ] and [ B21 ; 0 ].
 *> \endverbatim
@@ -185,13 +185,13 @@
 *> \param[in] LDV1T
 *> \verbatim
 *>          LDV1T is INTEGER
-*>          The leading dimension of the array V1T.
+*>          The leading dimension of the array V1T, LDV1T >= MAX(1,Q).
 *> \endverbatim
 *>
 *> \param[in,out] V2T
 *> \verbatim
-*>          V2T is DOUBLE PRECISION array, dimenison (LDV2T,M-Q)
-*>          On entry, a LDV2T-by-(M-Q) matrix. On exit, V2T is
+*>          V2T is DOUBLE PRECISION array, dimension (LDV2T,M-Q)
+*>          On entry, an (M-Q)-by-(M-Q) matrix. On exit, V2T is
 *>          premultiplied by the transpose of the right
 *>          singular vector matrix common to [ B12 0 0 ; 0 -I 0 ] and
 *>          [ B22 0 0 ; 0 0 I ].
@@ -200,7 +200,7 @@
 *> \param[in] LDV2T
 *> \verbatim
 *>          LDV2T is INTEGER
-*>          The leading dimension of the array V2T.
+*>          The leading dimension of the array V2T, LDV2T >= MAX(1,M-Q).
 *> \endverbatim
 *>
 *> \param[out] B11D
@@ -240,8 +240,8 @@
 *> \param[out] B21D
 *> \verbatim
 *>          B21D is DOUBLE PRECISION  array, dimension (Q)
-*>          When CBBCSD converges, B21D contains the negative sines of
-*>          THETA(1), ..., THETA(Q). If CBBCSD fails to converge, then
+*>          When DBBCSD converges, B21D contains the negative sines of
+*>          THETA(1), ..., THETA(Q). If DBBCSD fails to converge, then
 *>          B21D contains the diagonal of the partially reduced bottom-left
 *>          block.
 *> \endverbatim
@@ -249,7 +249,7 @@
 *> \param[out] B21E
 *> \verbatim
 *>          B21E is DOUBLE PRECISION  array, dimension (Q-1)
-*>          When CBBCSD converges, B21E contains zeros. If CBBCSD fails
+*>          When DBBCSD converges, B21E contains zeros. If DBBCSD fails
 *>          to converge, then B21E contains the subdiagonal of the
 *>          partially reduced bottom-left block.
 *> \endverbatim
@@ -257,8 +257,8 @@
 *> \param[out] B22D
 *> \verbatim
 *>          B22D is DOUBLE PRECISION  array, dimension (Q)
-*>          When CBBCSD converges, B22D contains the negative sines of
-*>          THETA(1), ..., THETA(Q). If CBBCSD fails to converge, then
+*>          When DBBCSD converges, B22D contains the negative sines of
+*>          THETA(1), ..., THETA(Q). If DBBCSD fails to converge, then
 *>          B22D contains the diagonal of the partially reduced bottom-right
 *>          block.
 *> \endverbatim
@@ -266,7 +266,7 @@
 *> \param[out] B22E
 *> \verbatim
 *>          B22E is DOUBLE PRECISION  array, dimension (Q-1)
-*>          When CBBCSD converges, B22E contains zeros. If CBBCSD fails
+*>          When DBBCSD converges, B22E contains zeros. If DBBCSD fails
 *>          to converge, then B22E contains the subdiagonal of the
 *>          partially reduced bottom-right block.
 *> \endverbatim
@@ -317,12 +317,12 @@
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
-*> \date November 2011
+*> \date June 2016
 *
 *> \ingroup doubleOTHERcomputational
 *
@@ -332,10 +332,10 @@
      $                   V2T, LDV2T, B11D, B11E, B12D, B12E, B21D, B21E,
      $                   B22D, B22E, WORK, LWORK, INFO )
 *
-*  -- LAPACK computational routine (version 3.4.0) --
+*  -- LAPACK computational routine (version 3.7.1) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
+*     June 2016
 *
 *     .. Scalar Arguments ..
       CHARACTER          JOBU1, JOBU2, JOBV1T, JOBV2T, TRANS
@@ -358,8 +358,8 @@
       PARAMETER          ( HUNDRED = 100.0D0, MEIGHTH = -0.125D0,
      $                     ONE = 1.0D0, PIOVER2 = 1.57079632679489662D0,
      $                     TEN = 10.0D0, ZERO = 0.0D0 )
-      DOUBLE PRECISION   NEGONECOMPLEX
-      PARAMETER          ( NEGONECOMPLEX = -1.0D0 )
+      DOUBLE PRECISION   NEGONE
+      PARAMETER          ( NEGONE = -1.0D0 )
 *     ..
 *     .. Local Scalars ..
       LOGICAL            COLMAJOR, LQUERY, RESTART11, RESTART12,
@@ -477,7 +477,10 @@
 *     Initial deflation
 *
       IMAX = Q
-      DO WHILE( ( IMAX .GT. 1 ) .AND. ( PHI(IMAX-1) .EQ. ZERO ) )
+      DO WHILE( IMAX .GT. 1 )
+         IF( PHI(IMAX-1) .NE. ZERO ) THEN
+            EXIT
+         END IF
          IMAX = IMAX - 1
       END DO
       IMIN = IMAX - 1
@@ -939,9 +942,9 @@
             B21D(IMAX) = -B21D(IMAX)
             IF( WANTV1T ) THEN
                IF( COLMAJOR ) THEN
-                  CALL DSCAL( Q, NEGONECOMPLEX, V1T(IMAX,1), LDV1T )
+                  CALL DSCAL( Q, NEGONE, V1T(IMAX,1), LDV1T )
                ELSE
-                  CALL DSCAL( Q, NEGONECOMPLEX, V1T(1,IMAX), 1 )
+                  CALL DSCAL( Q, NEGONE, V1T(1,IMAX), 1 )
                END IF
             END IF
          END IF
@@ -962,9 +965,9 @@
             B12D(IMAX) = -B12D(IMAX)
             IF( WANTU1 ) THEN
                IF( COLMAJOR ) THEN
-                  CALL DSCAL( P, NEGONECOMPLEX, U1(1,IMAX), 1 )
+                  CALL DSCAL( P, NEGONE, U1(1,IMAX), 1 )
                ELSE
-                  CALL DSCAL( P, NEGONECOMPLEX, U1(IMAX,1), LDU1 )
+                  CALL DSCAL( P, NEGONE, U1(IMAX,1), LDU1 )
                END IF
             END IF
          END IF
@@ -972,9 +975,9 @@
             B22D(IMAX) = -B22D(IMAX)
             IF( WANTU2 ) THEN
                IF( COLMAJOR ) THEN
-                  CALL DSCAL( M-P, NEGONECOMPLEX, U2(1,IMAX), 1 )
+                  CALL DSCAL( M-P, NEGONE, U2(1,IMAX), 1 )
                ELSE
-                  CALL DSCAL( M-P, NEGONECOMPLEX, U2(IMAX,1), LDU2 )
+                  CALL DSCAL( M-P, NEGONE, U2(IMAX,1), LDU2 )
                END IF
             END IF
          END IF
@@ -984,9 +987,9 @@
          IF( B12D(IMAX)+B22D(IMAX) .LT. 0 ) THEN
             IF( WANTV2T ) THEN
                IF( COLMAJOR ) THEN
-                  CALL DSCAL( M-Q, NEGONECOMPLEX, V2T(IMAX,1), LDV2T )
+                  CALL DSCAL( M-Q, NEGONE, V2T(IMAX,1), LDV2T )
                ELSE
-                  CALL DSCAL( M-Q, NEGONECOMPLEX, V2T(1,IMAX), 1 )
+                  CALL DSCAL( M-Q, NEGONE, V2T(1,IMAX), 1 )
                END IF
             END IF
          END IF

@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,36 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function slarft
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated November 2015
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_slarft( int matrix_order, char direct, char storev,
+lapack_int LAPACKE_slarft( int matrix_layout, char direct, char storev,
                            lapack_int n, lapack_int k, const float* v,
                            lapack_int ldv, const float* tau, float* t,
                            lapack_int ldt )
 {
     lapack_int ncols_v, nrows_v;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_slarft", -1 );
         return -1;
     }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    ncols_v = LAPACKE_lsame( storev, 'c' ) ? k :
-                         ( LAPACKE_lsame( storev, 'r' ) ? n : 1);
-    nrows_v = LAPACKE_lsame( storev, 'c' ) ? n :
-                         ( LAPACKE_lsame( storev, 'r' ) ? k : 1);
-    if( LAPACKE_s_nancheck( k, tau, 1 ) ) {
-        return -8;
-    }
-    if( LAPACKE_sge_nancheck( matrix_order, nrows_v, ncols_v, v, ldv ) ) {
-        return -6;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        ncols_v = LAPACKE_lsame( storev, 'c' ) ? k :
+                             ( LAPACKE_lsame( storev, 'r' ) ? n : 1);
+        nrows_v = LAPACKE_lsame( storev, 'c' ) ? n :
+                             ( LAPACKE_lsame( storev, 'r' ) ? k : 1);
+        if( LAPACKE_s_nancheck( k, tau, 1 ) ) {
+            return -8;
+        }
+        if( LAPACKE_sge_nancheck( matrix_layout, nrows_v, ncols_v, v, ldv ) ) {
+            return -6;
+        }
     }
 #endif
-    return LAPACKE_slarft_work( matrix_order, direct, storev, n, k, v, ldv, tau,
+    return LAPACKE_slarft_work( matrix_layout, direct, storev, n, k, v, ldv, tau,
                                 t, ldt );
 }

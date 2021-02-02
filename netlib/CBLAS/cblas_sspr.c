@@ -9,7 +9,7 @@
 
 #include "cblas.h"
 #include "cblas_f77.h"
-void cblas_sspr(const enum CBLAS_ORDER order, const enum CBLAS_UPLO Uplo,
+void cblas_sspr(const CBLAS_LAYOUT layout, const CBLAS_UPLO Uplo,
                 const int N, const  float alpha, const float *X,
                 const int incX, float *Ap)
 {
@@ -32,11 +32,11 @@ void cblas_sspr(const enum CBLAS_ORDER order, const enum CBLAS_UPLO Uplo,
    RowMajorStrg = 0;
 
    CBLAS_CallFromC = 1;
-   if (order == CblasColMajor)
+   if (layout == CblasColMajor)
    {
       if (Uplo == CblasLower) UL = 'L';
       else if (Uplo == CblasUpper) UL = 'U';
-      else 
+      else
       {
          cblas_xerbla(2, "cblas_sspr","Illegal Uplo setting, %d\n",Uplo );
          CBLAS_CallFromC = 0;
@@ -49,12 +49,12 @@ void cblas_sspr(const enum CBLAS_ORDER order, const enum CBLAS_UPLO Uplo,
 
       F77_sspr(F77_UL, &F77_N, &alpha, X, &F77_incX, Ap);
 
-   }  else if (order == CblasRowMajor) 
+   }  else if (layout == CblasRowMajor)
    {
       RowMajorStrg = 1;
       if (Uplo == CblasLower) UL = 'U';
       else if (Uplo == CblasUpper) UL = 'L';
-      else 
+      else
       {
          cblas_xerbla(2, "cblas_sspr","Illegal Uplo setting, %d\n",Uplo );
          CBLAS_CallFromC = 0;
@@ -63,9 +63,9 @@ void cblas_sspr(const enum CBLAS_ORDER order, const enum CBLAS_UPLO Uplo,
       }
       #ifdef F77_CHAR
          F77_UL = C2F_CHAR(&UL);
-      #endif  
-      F77_sspr(F77_UL, &F77_N, &alpha, X, &F77_incX, Ap); 
-   } else cblas_xerbla(1, "cblas_sspr", "Illegal Order setting, %d\n", order);
+      #endif
+      F77_sspr(F77_UL, &F77_N, &alpha, X, &F77_incX, Ap);
+   } else cblas_xerbla(1, "cblas_sspr", "Illegal layout setting, %d\n", layout);
    CBLAS_CallFromC = 0;
    RowMajorStrg = 0;
    return;

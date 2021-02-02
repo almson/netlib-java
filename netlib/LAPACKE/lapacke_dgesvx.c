@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function dgesvx
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated November 2015
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_dgesvx( int matrix_order, char fact, char trans,
+lapack_int LAPACKE_dgesvx( int matrix_layout, char fact, char trans,
                            lapack_int n, lapack_int nrhs, double* a,
                            lapack_int lda, double* af, lapack_int ldaf,
                            lapack_int* ipiv, char* equed, double* r, double* c,
@@ -44,33 +44,35 @@ lapack_int LAPACKE_dgesvx( int matrix_order, char fact, char trans,
     lapack_int info = 0;
     lapack_int* iwork = NULL;
     double* work = NULL;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_dgesvx", -1 );
         return -1;
     }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    if( LAPACKE_dge_nancheck( matrix_order, n, n, a, lda ) ) {
-        return -6;
-    }
-    if( LAPACKE_lsame( fact, 'f' ) ) {
-        if( LAPACKE_dge_nancheck( matrix_order, n, n, af, ldaf ) ) {
-            return -8;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        if( LAPACKE_dge_nancheck( matrix_layout, n, n, a, lda ) ) {
+            return -6;
         }
-    }
-    if( LAPACKE_dge_nancheck( matrix_order, n, nrhs, b, ldb ) ) {
-        return -14;
-    }
-    if( LAPACKE_lsame( fact, 'f' ) && ( LAPACKE_lsame( *equed, 'b' ) ||
-        LAPACKE_lsame( *equed, 'c' ) ) ) {
-        if( LAPACKE_d_nancheck( n, c, 1 ) ) {
-            return -13;
+        if( LAPACKE_lsame( fact, 'f' ) ) {
+            if( LAPACKE_dge_nancheck( matrix_layout, n, n, af, ldaf ) ) {
+                return -8;
+            }
         }
-    }
-    if( LAPACKE_lsame( fact, 'f' ) && ( LAPACKE_lsame( *equed, 'b' ) ||
-        LAPACKE_lsame( *equed, 'r' ) ) ) {
-        if( LAPACKE_d_nancheck( n, r, 1 ) ) {
-            return -12;
+        if( LAPACKE_dge_nancheck( matrix_layout, n, nrhs, b, ldb ) ) {
+            return -14;
+        }
+        if( LAPACKE_lsame( fact, 'f' ) && ( LAPACKE_lsame( *equed, 'b' ) ||
+            LAPACKE_lsame( *equed, 'c' ) ) ) {
+            if( LAPACKE_d_nancheck( n, c, 1 ) ) {
+                return -13;
+            }
+        }
+        if( LAPACKE_lsame( fact, 'f' ) && ( LAPACKE_lsame( *equed, 'b' ) ||
+            LAPACKE_lsame( *equed, 'r' ) ) ) {
+            if( LAPACKE_d_nancheck( n, r, 1 ) ) {
+                return -12;
+            }
         }
     }
 #endif
@@ -86,7 +88,7 @@ lapack_int LAPACKE_dgesvx( int matrix_order, char fact, char trans,
         goto exit_level_1;
     }
     /* Call middle-level interface */
-    info = LAPACKE_dgesvx_work( matrix_order, fact, trans, n, nrhs, a, lda, af,
+    info = LAPACKE_dgesvx_work( matrix_layout, fact, trans, n, nrhs, a, lda, af,
                                 ldaf, ipiv, equed, r, c, b, ldb, x, ldx, rcond,
                                 ferr, berr, work, iwork );
     /* Backup significant data from working array(s) */

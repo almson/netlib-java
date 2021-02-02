@@ -9,19 +9,19 @@
 
 #include "cblas.h"
 #include "cblas_f77.h"
-void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
-                 const enum CBLAS_UPLO Uplo, const enum CBLAS_TRANSPOSE TransA,
-                 const enum CBLAS_DIAG Diag, const int M, const int N,
+void cblas_dtrsm(const CBLAS_LAYOUT layout, const CBLAS_SIDE Side,
+                 const CBLAS_UPLO Uplo, const CBLAS_TRANSPOSE TransA,
+                 const CBLAS_DIAG Diag, const int M, const int N,
                  const double alpha, const double  *A, const int lda,
                  double  *B, const int ldb)
 
 {
-   char UL, TA, SD, DI;   
+   char UL, TA, SD, DI;
 #ifdef F77_CHAR
    F77_CHAR F77_TA, F77_UL, F77_SD, F77_DI;
 #else
-   #define F77_TA &TA  
-   #define F77_UL &UL  
+   #define F77_TA &TA
+   #define F77_UL &UL
    #define F77_SD &SD
    #define F77_DI &DI
 #endif
@@ -40,11 +40,11 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
    RowMajorStrg = 0;
    CBLAS_CallFromC = 1;
 
-   if( Order == CblasColMajor )
+   if( layout == CblasColMajor )
    {
       if      ( Side == CblasRight) SD='R';
       else if ( Side == CblasLeft ) SD='L';
-      else 
+      else
       {
          cblas_xerbla(2, "cblas_dtrsm","Illegal Side setting, %d\n", Side);
          CBLAS_CallFromC = 0;
@@ -53,7 +53,7 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
       }
       if      ( Uplo == CblasUpper) UL='U';
       else if ( Uplo == CblasLower) UL='L';
-      else 
+      else
       {
          cblas_xerbla(3, "cblas_dtrsm","Illegal Uplo setting, %d\n", Uplo);
          CBLAS_CallFromC = 0;
@@ -64,7 +64,7 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
       if      ( TransA == CblasTrans    ) TA='T';
       else if ( TransA == CblasConjTrans) TA='C';
       else if ( TransA == CblasNoTrans  ) TA='N';
-      else 
+      else
       {
          cblas_xerbla(4, "cblas_dtrsm","Illegal Trans setting, %d\n", TransA);
          CBLAS_CallFromC = 0;
@@ -74,7 +74,7 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
 
       if      ( Diag == CblasUnit   ) DI='U';
       else if ( Diag == CblasNonUnit) DI='N';
-      else 
+      else
       {
          cblas_xerbla(5, "cblas_dtrsm","Illegal Diag setting, %d\n", Diag);
          CBLAS_CallFromC = 0;
@@ -91,13 +91,13 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
 
       F77_dtrsm(F77_SD, F77_UL, F77_TA, F77_DI, &F77_M, &F77_N, &alpha,
                 A, &F77_lda, B, &F77_ldb);
-   } 
-   else if (Order == CblasRowMajor)
+   }
+   else if (layout == CblasRowMajor)
    {
       RowMajorStrg = 1;
       if      ( Side == CblasRight) SD='L';
       else if ( Side == CblasLeft ) SD='R';
-      else 
+      else
       {
          cblas_xerbla(2, "cblas_dtrsm","Illegal Side setting, %d\n", Side);
          CBLAS_CallFromC = 0;
@@ -107,7 +107,7 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
 
       if      ( Uplo == CblasUpper) UL='L';
       else if ( Uplo == CblasLower) UL='U';
-      else 
+      else
       {
          cblas_xerbla(3, "cblas_dtrsm","Illegal Uplo setting, %d\n", Uplo);
          CBLAS_CallFromC = 0;
@@ -118,7 +118,7 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
       if      ( TransA == CblasTrans    ) TA='T';
       else if ( TransA == CblasConjTrans) TA='C';
       else if ( TransA == CblasNoTrans  ) TA='N';
-      else 
+      else
       {
          cblas_xerbla(4, "cblas_dtrsm","Illegal Trans setting, %d\n", TransA);
          CBLAS_CallFromC = 0;
@@ -128,7 +128,7 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
 
       if      ( Diag == CblasUnit   ) DI='U';
       else if ( Diag == CblasNonUnit) DI='N';
-      else 
+      else
       {
          cblas_xerbla(5, "cblas_dtrsm","Illegal Diag setting, %d\n", Diag);
          CBLAS_CallFromC = 0;
@@ -143,10 +143,10 @@ void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
          F77_DI = C2F_CHAR(&DI);
       #endif
 
-      F77_dtrsm(F77_SD, F77_UL, F77_TA, F77_DI, &F77_N, &F77_M, &alpha, A, 
+      F77_dtrsm(F77_SD, F77_UL, F77_TA, F77_DI, &F77_N, &F77_M, &alpha, A,
                &F77_lda, B, &F77_ldb);
-   } 
-   else cblas_xerbla(1, "cblas_dtrsm","Illegal Order setting, %d\n", Order);
+   }
+   else cblas_xerbla(1, "cblas_dtrsm","Illegal layout setting, %d\n", layout);
    CBLAS_CallFromC = 0;
    RowMajorStrg = 0;
    return;

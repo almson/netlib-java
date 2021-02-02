@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function dgejsv
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated June 2016
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_dgejsv( int matrix_order, char joba, char jobu, char jobv,
+lapack_int LAPACKE_dgejsv( int matrix_layout, char joba, char jobu, char jobv,
                            char jobr, char jobt, char jobp, lapack_int m,
                            lapack_int n, double* a, lapack_int lda, double* sva,
                            double* u, lapack_int ldu, double* v, lapack_int ldv,
@@ -70,40 +70,39 @@ lapack_int LAPACKE_dgejsv( int matrix_order, char joba, char jobu, char jobv,
                        ( LAPACKE_lsame( jobv, 'v' ) ||
                        LAPACKE_lsame( jobv, 'j' ) ) &&
                        LAPACKE_lsame( jobv, 'j' ) ? MAX(7,m+3*n+n*n) :
-                       1) ) ) ) ) );
+                       7) ) ) ) ) );
     lapack_int* iwork = NULL;
     double* work = NULL;
     lapack_int i;
-    lapack_int nu, nv;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_dgejsv", -1 );
         return -1;
     }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    nu = LAPACKE_lsame( jobu, 'n' ) ? 1 : m;
-    nv = LAPACKE_lsame( jobv, 'n' ) ? 1 : n;
-    if( LAPACKE_dge_nancheck( matrix_order, m, n, a, lda ) ) {
-        return -10;
-    }
-    if( LAPACKE_lsame( jobu, 'f' ) || LAPACKE_lsame( jobu, 'u' ) ||
-        LAPACKE_lsame( jobu, 'w' ) ) {
-        if( LAPACKE_dge_nancheck( matrix_order, nu, n, u, ldu ) ) {
-            return -13;
-        }
-    }
-    if( LAPACKE_lsame( jobv, 'j' ) || LAPACKE_lsame( jobv, 'v' ) ||
-        LAPACKE_lsame( jobv, 'w' ) ) {
-        if( LAPACKE_dge_nancheck( matrix_order, nv, n, v, ldv ) ) {
-            return -15;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        if( LAPACKE_dge_nancheck( matrix_layout, m, n, a, lda ) ) {
+            return -10;
         }
     }
 #endif
     /* Allocate memory for working array(s) */
-    iwork = (lapack_int*)LAPACKE_malloc( sizeof(lapack_int) * MAX(1,m+3*n) );
+    iwork = (lapack_int*)LAPACKE_malloc( sizeof(lapack_int) * MAX(3,m+3*n) );
     if( iwork == NULL ) {
         info = LAPACK_WORK_MEMORY_ERROR;
         goto exit_level_0;
+    }
+    lwork = MAX3( lwork, 7, 2*m+n );
+    { /* FIXUP LWORK */
+        int want_u = LAPACKE_lsame( jobu, 'u' ) || LAPACKE_lsame( jobu, 'f' );
+        int want_v = LAPACKE_lsame( jobv, 'v' ) || LAPACKE_lsame( jobv, 'j' );
+        int want_sce = LAPACKE_lsame( joba, 'e' ) || LAPACKE_lsame( joba, 'g' );
+        if( !want_u && !want_v && !want_sce )  lwork = MAX( lwork, 4*n+1 ); // 1.1
+        if( !want_u && !want_v && want_sce )   lwork = MAX( lwork, n*n+4*n ); // 1.2
+        if( !want_u && want_v ) lwork = MAX( lwork, 4*n+1 ); // 2
+        if( want_u && !want_v ) lwork = MAX( lwork, 4*n+1 ); // 3
+        if( want_u && LAPACKE_lsame( jobv, 'v' ) ) lwork = MAX( lwork, 6*n+2*n*n ); // 4.1
+        if( want_u && LAPACKE_lsame( jobv, 'j' ) ) lwork = MAX3( lwork, 4*n+n*n, 2*n+n*n+6 ); // 4.2
     }
     work = (double*)LAPACKE_malloc( sizeof(double) * lwork );
     if( work == NULL ) {
@@ -111,7 +110,7 @@ lapack_int LAPACKE_dgejsv( int matrix_order, char joba, char jobu, char jobv,
         goto exit_level_1;
     }
     /* Call middle-level interface */
-    info = LAPACKE_dgejsv_work( matrix_order, joba, jobu, jobv, jobr, jobt,
+    info = LAPACKE_dgejsv_work( matrix_layout, joba, jobu, jobv, jobr, jobt,
                                 jobp, m, n, a, lda, sva, u, ldu, v, ldv, work,
                                 lwork, iwork );
     /* Backup significant data from working array(s) */

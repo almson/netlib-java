@@ -2,25 +2,25 @@
 *
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
 *> \htmlonly
-*> Download SLARFB + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/slarfb.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/slarfb.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/slarfb.f"> 
+*> Download SLARFB + dependencies
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/slarfb.f">
+*> [TGZ]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/slarfb.f">
+*> [ZIP]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/slarfb.f">
 *> [TXT]</a>
-*> \endhtmlonly 
+*> \endhtmlonly
 *
 *  Definition:
 *  ===========
 *
 *       SUBROUTINE SLARFB( SIDE, TRANS, DIRECT, STOREV, M, N, K, V, LDV,
 *                          T, LDT, C, LDC, WORK, LDWORK )
-* 
+*
 *       .. Scalar Arguments ..
 *       CHARACTER          DIRECT, SIDE, STOREV, TRANS
 *       INTEGER            K, LDC, LDT, LDV, LDWORK, M, N
@@ -29,7 +29,7 @@
 *       REAL               C( LDC, * ), T( LDT, * ), V( LDV, * ),
 *      $                   WORK( LDWORK, * )
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -92,6 +92,8 @@
 *>          K is INTEGER
 *>          The order of the matrix T (= the number of elementary
 *>          reflectors whose product defines the block reflector).
+*>          If SIDE = 'L', M >= K >= 0;
+*>          if SIDE = 'R', N >= K >= 0.
 *> \endverbatim
 *>
 *> \param[in] V
@@ -154,12 +156,12 @@
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
-*> \date September 2012
+*> \date June 2013
 *
 *> \ingroup realOTHERauxiliary
 *
@@ -195,10 +197,10 @@
       SUBROUTINE SLARFB( SIDE, TRANS, DIRECT, STOREV, M, N, K, V, LDV,
      $                   T, LDT, C, LDC, WORK, LDWORK )
 *
-*  -- LAPACK auxiliary routine (version 3.4.2) --
+*  -- LAPACK auxiliary routine (version 3.7.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     September 2012
+*     June 2013
 *
 *     .. Scalar Arguments ..
       CHARACTER          DIRECT, SIDE, STOREV, TRANS
@@ -217,12 +219,11 @@
 *     ..
 *     .. Local Scalars ..
       CHARACTER          TRANST
-      INTEGER            I, J, LASTV, LASTC
+      INTEGER            I, J
 *     ..
 *     .. External Functions ..
       LOGICAL            LSAME
-      INTEGER            ILASLR, ILASLC
-      EXTERNAL           LSAME, ILASLR, ILASLC
+      EXTERNAL           LSAME
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           SCOPY, SGEMM, STRMM
@@ -253,57 +254,52 @@
 *              Form  H * C  or  H**T * C  where  C = ( C1 )
 *                                                    ( C2 )
 *
-               LASTV = MAX( K, ILASLR( M, K, V, LDV ) )
-               LASTC = ILASLC( LASTV, N, C, LDC )
-*
 *              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
 *
 *              W := C1**T
 *
                DO 10 J = 1, K
-                  CALL SCOPY( LASTC, C( J, 1 ), LDC, WORK( 1, J ), 1 )
+                  CALL SCOPY( N, C( J, 1 ), LDC, WORK( 1, J ), 1 )
    10          CONTINUE
 *
 *              W := W * V1
 *
-               CALL STRMM( 'Right', 'Lower', 'No transpose', 'Unit',
-     $              LASTC, K, ONE, V, LDV, WORK, LDWORK )
-               IF( LASTV.GT.K ) THEN
+               CALL STRMM( 'Right', 'Lower', 'No transpose', 'Unit', N,
+     $                     K, ONE, V, LDV, WORK, LDWORK )
+               IF( M.GT.K ) THEN
 *
-*                 W := W + C2**T *V2
+*                 W := W + C2**T * V2
 *
-                  CALL SGEMM( 'Transpose', 'No transpose',
-     $                 LASTC, K, LASTV-K,
-     $                 ONE, C( K+1, 1 ), LDC, V( K+1, 1 ), LDV,
-     $                 ONE, WORK, LDWORK )
+                  CALL SGEMM( 'Transpose', 'No transpose', N, K, M-K,
+     $                        ONE, C( K+1, 1 ), LDC, V( K+1, 1 ), LDV,
+     $                        ONE, WORK, LDWORK )
                END IF
 *
 *              W := W * T**T  or  W * T
 *
-               CALL STRMM( 'Right', 'Upper', TRANST, 'Non-unit',
-     $              LASTC, K, ONE, T, LDT, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', TRANST, 'Non-unit', N, K,
+     $                     ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - V * W**T
 *
-               IF( LASTV.GT.K ) THEN
+               IF( M.GT.K ) THEN
 *
 *                 C2 := C2 - V2 * W**T
 *
-                  CALL SGEMM( 'No transpose', 'Transpose',
-     $                 LASTV-K, LASTC, K,
-     $                 -ONE, V( K+1, 1 ), LDV, WORK, LDWORK, ONE,
-     $                 C( K+1, 1 ), LDC )
+                  CALL SGEMM( 'No transpose', 'Transpose', M-K, N, K,
+     $                        -ONE, V( K+1, 1 ), LDV, WORK, LDWORK, ONE,
+     $                        C( K+1, 1 ), LDC )
                END IF
 *
 *              W := W * V1**T
 *
-               CALL STRMM( 'Right', 'Lower', 'Transpose', 'Unit',
-     $              LASTC, K, ONE, V, LDV, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', 'Transpose', 'Unit', N, K,
+     $                     ONE, V, LDV, WORK, LDWORK )
 *
 *              C1 := C1 - W**T
 *
                DO 30 J = 1, K
-                  DO 20 I = 1, LASTC
+                  DO 20 I = 1, N
                      C( J, I ) = C( J, I ) - WORK( I, J )
    20             CONTINUE
    30          CONTINUE
@@ -312,57 +308,52 @@
 *
 *              Form  C * H  or  C * H**T  where  C = ( C1  C2 )
 *
-               LASTV = MAX( K, ILASLR( N, K, V, LDV ) )
-               LASTC = ILASLR( M, LASTV, C, LDC )
-*
 *              W := C * V  =  (C1*V1 + C2*V2)  (stored in WORK)
 *
 *              W := C1
 *
                DO 40 J = 1, K
-                  CALL SCOPY( LASTC, C( 1, J ), 1, WORK( 1, J ), 1 )
+                  CALL SCOPY( M, C( 1, J ), 1, WORK( 1, J ), 1 )
    40          CONTINUE
 *
 *              W := W * V1
 *
-               CALL STRMM( 'Right', 'Lower', 'No transpose', 'Unit',
-     $              LASTC, K, ONE, V, LDV, WORK, LDWORK )
-               IF( LASTV.GT.K ) THEN
+               CALL STRMM( 'Right', 'Lower', 'No transpose', 'Unit', M,
+     $                     K, ONE, V, LDV, WORK, LDWORK )
+               IF( N.GT.K ) THEN
 *
 *                 W := W + C2 * V2
 *
-                  CALL SGEMM( 'No transpose', 'No transpose',
-     $                 LASTC, K, LASTV-K,
-     $                 ONE, C( 1, K+1 ), LDC, V( K+1, 1 ), LDV,
-     $                 ONE, WORK, LDWORK )
+                  CALL SGEMM( 'No transpose', 'No transpose', M, K, N-K,
+     $                        ONE, C( 1, K+1 ), LDC, V( K+1, 1 ), LDV,
+     $                        ONE, WORK, LDWORK )
                END IF
 *
 *              W := W * T  or  W * T**T
 *
-               CALL STRMM( 'Right', 'Upper', TRANS, 'Non-unit',
-     $              LASTC, K, ONE, T, LDT, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', TRANS, 'Non-unit', M, K,
+     $                     ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - W * V**T
 *
-               IF( LASTV.GT.K ) THEN
+               IF( N.GT.K ) THEN
 *
 *                 C2 := C2 - W * V2**T
 *
-                  CALL SGEMM( 'No transpose', 'Transpose',
-     $                 LASTC, LASTV-K, K,
-     $                 -ONE, WORK, LDWORK, V( K+1, 1 ), LDV, ONE,
-     $                 C( 1, K+1 ), LDC )
+                  CALL SGEMM( 'No transpose', 'Transpose', M, N-K, K,
+     $                        -ONE, WORK, LDWORK, V( K+1, 1 ), LDV, ONE,
+     $                        C( 1, K+1 ), LDC )
                END IF
 *
 *              W := W * V1**T
 *
-               CALL STRMM( 'Right', 'Lower', 'Transpose', 'Unit',
-     $              LASTC, K, ONE, V, LDV, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', 'Transpose', 'Unit', M, K,
+     $                     ONE, V, LDV, WORK, LDWORK )
 *
 *              C1 := C1 - W
 *
                DO 60 J = 1, K
-                  DO 50 I = 1, LASTC
+                  DO 50 I = 1, M
                      C( I, J ) = C( I, J ) - WORK( I, J )
    50             CONTINUE
    60          CONTINUE
@@ -379,35 +370,30 @@
 *              Form  H * C  or  H**T * C  where  C = ( C1 )
 *                                                    ( C2 )
 *
-               LASTC = ILASLC( M, N, C, LDC )
-*
 *              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
 *
 *              W := C2**T
 *
                DO 70 J = 1, K
-                  CALL SCOPY( LASTC, C( M-K+J, 1 ), LDC,
-     $                 WORK( 1, J ), 1 )
+                  CALL SCOPY( N, C( M-K+J, 1 ), LDC, WORK( 1, J ), 1 )
    70          CONTINUE
 *
 *              W := W * V2
 *
-               CALL STRMM( 'Right', 'Upper', 'No transpose', 'Unit',
-     $              LASTC, K, ONE, V( M-K+1, 1 ), LDV,
-     $              WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', 'No transpose', 'Unit', N,
+     $                     K, ONE, V( M-K+1, 1 ), LDV, WORK, LDWORK )
                IF( M.GT.K ) THEN
 *
-*                 W := W + C1**T*V1
+*                 W := W + C1**T * V1
 *
-                  CALL SGEMM( 'Transpose', 'No transpose',
-     $                 LASTC, K, M-K, ONE, C, LDC, V, LDV,
-     $                 ONE, WORK, LDWORK )
+                  CALL SGEMM( 'Transpose', 'No transpose', N, K, M-K,
+     $                        ONE, C, LDC, V, LDV, ONE, WORK, LDWORK )
                END IF
 *
 *              W := W * T**T  or  W * T
 *
-               CALL STRMM( 'Right', 'Lower', TRANST, 'Non-unit',
-     $              LASTC, K, ONE, T, LDT, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', TRANST, 'Non-unit', N, K,
+     $                     ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - V * W**T
 *
@@ -415,57 +401,51 @@
 *
 *                 C1 := C1 - V1 * W**T
 *
-                  CALL SGEMM( 'No transpose', 'Transpose',
-     $                 M-K, LASTC, K, -ONE, V, LDV, WORK, LDWORK,
-     $                 ONE, C, LDC )
+                  CALL SGEMM( 'No transpose', 'Transpose', M-K, N, K,
+     $                        -ONE, V, LDV, WORK, LDWORK, ONE, C, LDC )
                END IF
 *
 *              W := W * V2**T
 *
-               CALL STRMM( 'Right', 'Upper', 'Transpose', 'Unit',
-     $              LASTC, K, ONE, V( M-K+1, 1 ), LDV,
-     $              WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', 'Transpose', 'Unit', N, K,
+     $                     ONE, V( M-K+1, 1 ), LDV, WORK, LDWORK )
 *
 *              C2 := C2 - W**T
 *
                DO 90 J = 1, K
-                  DO 80 I = 1, LASTC
-                     C( M-K+J, I ) = C( M-K+J, I ) - WORK(I, J)
+                  DO 80 I = 1, N
+                     C( M-K+J, I ) = C( M-K+J, I ) - WORK( I, J )
    80             CONTINUE
    90          CONTINUE
 *
             ELSE IF( LSAME( SIDE, 'R' ) ) THEN
 *
-*              Form  C * H  or  C * H**T  where  C = ( C1  C2 )
-*
-               LASTC = ILASLR( M, N, C, LDC )
+*              Form  C * H  or  C * H'  where  C = ( C1  C2 )
 *
 *              W := C * V  =  (C1*V1 + C2*V2)  (stored in WORK)
 *
 *              W := C2
 *
                DO 100 J = 1, K
-                  CALL SCOPY( LASTC, C( 1, N-K+J ), 1, WORK( 1, J ), 1 )
+                  CALL SCOPY( M, C( 1, N-K+J ), 1, WORK( 1, J ), 1 )
   100          CONTINUE
 *
 *              W := W * V2
 *
-               CALL STRMM( 'Right', 'Upper', 'No transpose', 'Unit',
-     $              LASTC, K, ONE, V( N-K+1, 1 ), LDV,
-     $              WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', 'No transpose', 'Unit', M,
+     $                     K, ONE, V( N-K+1, 1 ), LDV, WORK, LDWORK )
                IF( N.GT.K ) THEN
 *
 *                 W := W + C1 * V1
 *
-                  CALL SGEMM( 'No transpose', 'No transpose',
-     $                 LASTC, K, N-K, ONE, C, LDC, V, LDV,
-     $                 ONE, WORK, LDWORK )
+                  CALL SGEMM( 'No transpose', 'No transpose', M, K, N-K,
+     $                        ONE, C, LDC, V, LDV, ONE, WORK, LDWORK )
                END IF
 *
 *              W := W * T  or  W * T**T
 *
-               CALL STRMM( 'Right', 'Lower', TRANS, 'Non-unit',
-     $              LASTC, K, ONE, T, LDT, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', TRANS, 'Non-unit', M, K,
+     $                     ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - W * V**T
 *
@@ -473,22 +453,20 @@
 *
 *                 C1 := C1 - W * V1**T
 *
-                  CALL SGEMM( 'No transpose', 'Transpose',
-     $                 LASTC, N-K, K, -ONE, WORK, LDWORK, V, LDV,
-     $                 ONE, C, LDC )
+                  CALL SGEMM( 'No transpose', 'Transpose', M, N-K, K,
+     $                        -ONE, WORK, LDWORK, V, LDV, ONE, C, LDC )
                END IF
 *
 *              W := W * V2**T
 *
-               CALL STRMM( 'Right', 'Upper', 'Transpose', 'Unit',
-     $              LASTC, K, ONE, V( N-K+1, 1 ), LDV,
-     $              WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', 'Transpose', 'Unit', M, K,
+     $                     ONE, V( N-K+1, 1 ), LDV, WORK, LDWORK )
 *
 *              C2 := C2 - W
 *
                DO 120 J = 1, K
-                  DO 110 I = 1, LASTC
-                     C( I, N-K+J ) = C( I, N-K+J ) - WORK(I, J)
+                  DO 110 I = 1, M
+                     C( I, N-K+J ) = C( I, N-K+J ) - WORK( I, J )
   110             CONTINUE
   120          CONTINUE
             END IF
@@ -506,57 +484,52 @@
 *              Form  H * C  or  H**T * C  where  C = ( C1 )
 *                                                    ( C2 )
 *
-               LASTV = MAX( K, ILASLC( K, M, V, LDV ) )
-               LASTC = ILASLC( LASTV, N, C, LDC )
-*
 *              W := C**T * V**T  =  (C1**T * V1**T + C2**T * V2**T) (stored in WORK)
 *
 *              W := C1**T
 *
                DO 130 J = 1, K
-                  CALL SCOPY( LASTC, C( J, 1 ), LDC, WORK( 1, J ), 1 )
+                  CALL SCOPY( N, C( J, 1 ), LDC, WORK( 1, J ), 1 )
   130          CONTINUE
 *
 *              W := W * V1**T
 *
-               CALL STRMM( 'Right', 'Upper', 'Transpose', 'Unit',
-     $              LASTC, K, ONE, V, LDV, WORK, LDWORK )
-               IF( LASTV.GT.K ) THEN
+               CALL STRMM( 'Right', 'Upper', 'Transpose', 'Unit', N, K,
+     $                     ONE, V, LDV, WORK, LDWORK )
+               IF( M.GT.K ) THEN
 *
-*                 W := W + C2**T*V2**T
+*                 W := W + C2**T * V2**T
 *
-                  CALL SGEMM( 'Transpose', 'Transpose',
-     $                 LASTC, K, LASTV-K,
-     $                 ONE, C( K+1, 1 ), LDC, V( 1, K+1 ), LDV,
-     $                 ONE, WORK, LDWORK )
+                  CALL SGEMM( 'Transpose', 'Transpose', N, K, M-K, ONE,
+     $                        C( K+1, 1 ), LDC, V( 1, K+1 ), LDV, ONE,
+     $                        WORK, LDWORK )
                END IF
 *
 *              W := W * T**T  or  W * T
 *
-               CALL STRMM( 'Right', 'Upper', TRANST, 'Non-unit',
-     $              LASTC, K, ONE, T, LDT, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', TRANST, 'Non-unit', N, K,
+     $                     ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - V**T * W**T
 *
-               IF( LASTV.GT.K ) THEN
+               IF( M.GT.K ) THEN
 *
 *                 C2 := C2 - V2**T * W**T
 *
-                  CALL SGEMM( 'Transpose', 'Transpose',
-     $                 LASTV-K, LASTC, K,
-     $                 -ONE, V( 1, K+1 ), LDV, WORK, LDWORK,
-     $                 ONE, C( K+1, 1 ), LDC )
+                  CALL SGEMM( 'Transpose', 'Transpose', M-K, N, K, -ONE,
+     $                        V( 1, K+1 ), LDV, WORK, LDWORK, ONE,
+     $                        C( K+1, 1 ), LDC )
                END IF
 *
 *              W := W * V1
 *
-               CALL STRMM( 'Right', 'Upper', 'No transpose', 'Unit',
-     $              LASTC, K, ONE, V, LDV, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', 'No transpose', 'Unit', N,
+     $                     K, ONE, V, LDV, WORK, LDWORK )
 *
 *              C1 := C1 - W**T
 *
                DO 150 J = 1, K
-                  DO 140 I = 1, LASTC
+                  DO 140 I = 1, N
                      C( J, I ) = C( J, I ) - WORK( I, J )
   140             CONTINUE
   150          CONTINUE
@@ -565,57 +538,52 @@
 *
 *              Form  C * H  or  C * H**T  where  C = ( C1  C2 )
 *
-               LASTV = MAX( K, ILASLC( K, N, V, LDV ) )
-               LASTC = ILASLR( M, LASTV, C, LDC )
-*
 *              W := C * V**T  =  (C1*V1**T + C2*V2**T)  (stored in WORK)
 *
 *              W := C1
 *
                DO 160 J = 1, K
-                  CALL SCOPY( LASTC, C( 1, J ), 1, WORK( 1, J ), 1 )
+                  CALL SCOPY( M, C( 1, J ), 1, WORK( 1, J ), 1 )
   160          CONTINUE
 *
 *              W := W * V1**T
 *
-               CALL STRMM( 'Right', 'Upper', 'Transpose', 'Unit',
-     $              LASTC, K, ONE, V, LDV, WORK, LDWORK )
-               IF( LASTV.GT.K ) THEN
+               CALL STRMM( 'Right', 'Upper', 'Transpose', 'Unit', M, K,
+     $                     ONE, V, LDV, WORK, LDWORK )
+               IF( N.GT.K ) THEN
 *
 *                 W := W + C2 * V2**T
 *
-                  CALL SGEMM( 'No transpose', 'Transpose',
-     $                 LASTC, K, LASTV-K,
-     $                 ONE, C( 1, K+1 ), LDC, V( 1, K+1 ), LDV,
-     $                 ONE, WORK, LDWORK )
+                  CALL SGEMM( 'No transpose', 'Transpose', M, K, N-K,
+     $                        ONE, C( 1, K+1 ), LDC, V( 1, K+1 ), LDV,
+     $                        ONE, WORK, LDWORK )
                END IF
 *
 *              W := W * T  or  W * T**T
 *
-               CALL STRMM( 'Right', 'Upper', TRANS, 'Non-unit',
-     $              LASTC, K, ONE, T, LDT, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', TRANS, 'Non-unit', M, K,
+     $                     ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - W * V
 *
-               IF( LASTV.GT.K ) THEN
+               IF( N.GT.K ) THEN
 *
 *                 C2 := C2 - W * V2
 *
-                  CALL SGEMM( 'No transpose', 'No transpose',
-     $                 LASTC, LASTV-K, K,
-     $                 -ONE, WORK, LDWORK, V( 1, K+1 ), LDV,
-     $                 ONE, C( 1, K+1 ), LDC )
+                  CALL SGEMM( 'No transpose', 'No transpose', M, N-K, K,
+     $                        -ONE, WORK, LDWORK, V( 1, K+1 ), LDV, ONE,
+     $                        C( 1, K+1 ), LDC )
                END IF
 *
 *              W := W * V1
 *
-               CALL STRMM( 'Right', 'Upper', 'No transpose', 'Unit',
-     $              LASTC, K, ONE, V, LDV, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Upper', 'No transpose', 'Unit', M,
+     $                     K, ONE, V, LDV, WORK, LDWORK )
 *
 *              C1 := C1 - W
 *
                DO 180 J = 1, K
-                  DO 170 I = 1, LASTC
+                  DO 170 I = 1, M
                      C( I, J ) = C( I, J ) - WORK( I, J )
   170             CONTINUE
   180          CONTINUE
@@ -632,35 +600,30 @@
 *              Form  H * C  or  H**T * C  where  C = ( C1 )
 *                                                    ( C2 )
 *
-               LASTC = ILASLC( M, N, C, LDC )
-*
 *              W := C**T * V**T  =  (C1**T * V1**T + C2**T * V2**T) (stored in WORK)
 *
 *              W := C2**T
 *
                DO 190 J = 1, K
-                  CALL SCOPY( LASTC, C( M-K+J, 1 ), LDC,
-     $                 WORK( 1, J ), 1 )
+                  CALL SCOPY( N, C( M-K+J, 1 ), LDC, WORK( 1, J ), 1 )
   190          CONTINUE
 *
 *              W := W * V2**T
 *
-               CALL STRMM( 'Right', 'Lower', 'Transpose', 'Unit',
-     $              LASTC, K, ONE, V( 1, M-K+1 ), LDV,
-     $              WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', 'Transpose', 'Unit', N, K,
+     $                     ONE, V( 1, M-K+1 ), LDV, WORK, LDWORK )
                IF( M.GT.K ) THEN
 *
 *                 W := W + C1**T * V1**T
 *
-                  CALL SGEMM( 'Transpose', 'Transpose',
-     $                 LASTC, K, M-K, ONE, C, LDC, V, LDV,
-     $                 ONE, WORK, LDWORK )
+                  CALL SGEMM( 'Transpose', 'Transpose', N, K, M-K, ONE,
+     $                        C, LDC, V, LDV, ONE, WORK, LDWORK )
                END IF
 *
 *              W := W * T**T  or  W * T
 *
-               CALL STRMM( 'Right', 'Lower', TRANST, 'Non-unit',
-     $              LASTC, K, ONE, T, LDT, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', TRANST, 'Non-unit', N, K,
+     $                     ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - V**T * W**T
 *
@@ -668,22 +631,20 @@
 *
 *                 C1 := C1 - V1**T * W**T
 *
-                  CALL SGEMM( 'Transpose', 'Transpose',
-     $                 M-K, LASTC, K, -ONE, V, LDV, WORK, LDWORK,
-     $                 ONE, C, LDC )
+                  CALL SGEMM( 'Transpose', 'Transpose', M-K, N, K, -ONE,
+     $                        V, LDV, WORK, LDWORK, ONE, C, LDC )
                END IF
 *
 *              W := W * V2
 *
-               CALL STRMM( 'Right', 'Lower', 'No transpose', 'Unit',
-     $              LASTC, K, ONE, V( 1, M-K+1 ), LDV,
-     $              WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', 'No transpose', 'Unit', N,
+     $                     K, ONE, V( 1, M-K+1 ), LDV, WORK, LDWORK )
 *
 *              C2 := C2 - W**T
 *
                DO 210 J = 1, K
-                  DO 200 I = 1, LASTC
-                     C( M-K+J, I ) = C( M-K+J, I ) - WORK(I, J)
+                  DO 200 I = 1, N
+                     C( M-K+J, I ) = C( M-K+J, I ) - WORK( I, J )
   200             CONTINUE
   210          CONTINUE
 *
@@ -691,35 +652,30 @@
 *
 *              Form  C * H  or  C * H**T  where  C = ( C1  C2 )
 *
-               LASTC = ILASLR( M, N, C, LDC )
-*
 *              W := C * V**T  =  (C1*V1**T + C2*V2**T)  (stored in WORK)
 *
 *              W := C2
 *
                DO 220 J = 1, K
-                  CALL SCOPY( LASTC, C( 1, N-K+J ), 1,
-     $                 WORK( 1, J ), 1 )
+                  CALL SCOPY( M, C( 1, N-K+J ), 1, WORK( 1, J ), 1 )
   220          CONTINUE
 *
 *              W := W * V2**T
 *
-               CALL STRMM( 'Right', 'Lower', 'Transpose', 'Unit',
-     $              LASTC, K, ONE, V( 1, N-K+1 ), LDV,
-     $              WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', 'Transpose', 'Unit', M, K,
+     $                     ONE, V( 1, N-K+1 ), LDV, WORK, LDWORK )
                IF( N.GT.K ) THEN
 *
 *                 W := W + C1 * V1**T
 *
-                  CALL SGEMM( 'No transpose', 'Transpose',
-     $                 LASTC, K, N-K, ONE, C, LDC, V, LDV,
-     $                 ONE, WORK, LDWORK )
+                  CALL SGEMM( 'No transpose', 'Transpose', M, K, N-K,
+     $                        ONE, C, LDC, V, LDV, ONE, WORK, LDWORK )
                END IF
 *
 *              W := W * T  or  W * T**T
 *
-               CALL STRMM( 'Right', 'Lower', TRANS, 'Non-unit',
-     $              LASTC, K, ONE, T, LDT, WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', TRANS, 'Non-unit', M, K,
+     $                     ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - W * V
 *
@@ -727,21 +683,19 @@
 *
 *                 C1 := C1 - W * V1
 *
-                  CALL SGEMM( 'No transpose', 'No transpose',
-     $                 LASTC, N-K, K, -ONE, WORK, LDWORK, V, LDV,
-     $                 ONE, C, LDC )
+                  CALL SGEMM( 'No transpose', 'No transpose', M, N-K, K,
+     $                        -ONE, WORK, LDWORK, V, LDV, ONE, C, LDC )
                END IF
 *
 *              W := W * V2
 *
-               CALL STRMM( 'Right', 'Lower', 'No transpose', 'Unit',
-     $              LASTC, K, ONE, V( 1, N-K+1 ), LDV,
-     $              WORK, LDWORK )
+               CALL STRMM( 'Right', 'Lower', 'No transpose', 'Unit', M,
+     $                     K, ONE, V( 1, N-K+1 ), LDV, WORK, LDWORK )
 *
 *              C1 := C1 - W
 *
                DO 240 J = 1, K
-                  DO 230 I = 1, LASTC
+                  DO 230 I = 1, M
                      C( I, N-K+J ) = C( I, N-K+J ) - WORK( I, J )
   230             CONTINUE
   240          CONTINUE

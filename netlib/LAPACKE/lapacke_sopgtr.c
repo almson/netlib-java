@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,28 +28,30 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function sopgtr
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated November 2015
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_sopgtr( int matrix_order, char uplo, lapack_int n,
+lapack_int LAPACKE_sopgtr( int matrix_layout, char uplo, lapack_int n,
                            const float* ap, const float* tau, float* q,
                            lapack_int ldq )
 {
     lapack_int info = 0;
     float* work = NULL;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_sopgtr", -1 );
         return -1;
     }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    if( LAPACKE_ssp_nancheck( n, ap ) ) {
-        return -4;
-    }
-    if( LAPACKE_s_nancheck( n-1, tau, 1 ) ) {
-        return -5;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        if( LAPACKE_ssp_nancheck( n, ap ) ) {
+            return -4;
+        }
+        if( LAPACKE_s_nancheck( n-1, tau, 1 ) ) {
+            return -5;
+        }
     }
 #endif
     /* Allocate memory for working array(s) */
@@ -59,7 +61,7 @@ lapack_int LAPACKE_sopgtr( int matrix_order, char uplo, lapack_int n,
         goto exit_level_0;
     }
     /* Call middle-level interface */
-    info = LAPACKE_sopgtr_work( matrix_order, uplo, n, ap, tau, q, ldq, work );
+    info = LAPACKE_sopgtr_work( matrix_layout, uplo, n, ap, tau, q, ldq, work );
     /* Release memory and exit */
     LAPACKE_free( work );
 exit_level_0:

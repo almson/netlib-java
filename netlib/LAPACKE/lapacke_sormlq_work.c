@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,33 @@
 *****************************************************************************
 * Contents: Native middle-level C interface to LAPACK function sormlq
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated June 2016
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_sormlq_work( int matrix_order, char side, char trans,
+lapack_int LAPACKE_sormlq_work( int matrix_layout, char side, char trans,
                                 lapack_int m, lapack_int n, lapack_int k,
                                 const float* a, lapack_int lda,
                                 const float* tau, float* c, lapack_int ldc,
                                 float* work, lapack_int lwork )
 {
     lapack_int info = 0;
-    lapack_int lda_t, ldc_t;
-    float *a_t = NULL, *c_t = NULL;
-    if( matrix_order == LAPACK_COL_MAJOR ) {
+    if( matrix_layout == LAPACK_COL_MAJOR ) {
         /* Call LAPACK function and adjust info */
         LAPACK_sormlq( &side, &trans, &m, &n, &k, a, &lda, tau, c, &ldc, work,
                        &lwork, &info );
         if( info < 0 ) {
             info = info - 1;
         }
-    } else if( matrix_order == LAPACK_ROW_MAJOR ) {
-        lda_t = MAX(1,k);
-        ldc_t = MAX(1,m);
+    } else if( matrix_layout == LAPACK_ROW_MAJOR ) {
+        lapack_int r = LAPACKE_lsame( side, 'l' ) ? m : n;
+        lapack_int lda_t = MAX(1,k);
+        lapack_int ldc_t = MAX(1,m);
+        float *a_t = NULL;
+        float *c_t = NULL;
         /* Check leading dimension(s) */
-        if( lda < m ) {
+        if( lda < r ) {
             info = -8;
             LAPACKE_xerbla( "LAPACKE_sormlq_work", info );
             return info;
@@ -70,7 +71,7 @@ lapack_int LAPACKE_sormlq_work( int matrix_order, char side, char trans,
             return (info < 0) ? (info - 1) : info;
         }
         /* Allocate memory for temporary array(s) */
-        a_t = (float*)LAPACKE_malloc( sizeof(float) * lda_t * MAX(1,m) );
+        a_t = (float*)LAPACKE_malloc( sizeof(float) * lda_t * MAX(1,r) );
         if( a_t == NULL ) {
             info = LAPACK_TRANSPOSE_MEMORY_ERROR;
             goto exit_level_0;
@@ -81,8 +82,8 @@ lapack_int LAPACKE_sormlq_work( int matrix_order, char side, char trans,
             goto exit_level_1;
         }
         /* Transpose input matrices */
-        LAPACKE_sge_trans( matrix_order, k, m, a, lda, a_t, lda_t );
-        LAPACKE_sge_trans( matrix_order, m, n, c, ldc, c_t, ldc_t );
+        LAPACKE_sge_trans( matrix_layout, k, r, a, lda, a_t, lda_t );
+        LAPACKE_sge_trans( matrix_layout, m, n, c, ldc, c_t, ldc_t );
         /* Call LAPACK function and adjust info */
         LAPACK_sormlq( &side, &trans, &m, &n, &k, a_t, &lda_t, tau, c_t, &ldc_t,
                        work, &lwork, &info );

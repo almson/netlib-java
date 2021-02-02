@@ -1,21 +1,21 @@
-C> \brief \b DLAHILB
+*> \brief \b DLAHILB
 *
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
 *  Definition:
 *  ===========
 *
 *       SUBROUTINE DLAHILB( N, NRHS, A, LDA, X, LDX, B, LDB, WORK, INFO)
-* 
+*
 *       .. Scalar Arguments ..
 *       INTEGER N, NRHS, LDA, LDX, LDB, INFO
 *       .. Array Arguments ..
 *       DOUBLE PRECISION A(LDA, N), X(LDX, NRHS), B(LDB, NRHS), WORK(N)
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -26,8 +26,8 @@ C> \brief \b DLAHILB
 *> NRHS right-hand sides in B and solutions in X such that A*X=B.
 *>
 *> The Hilbert matrix is scaled by M = LCM(1, 2, ..., 2*N-1) so that all
-*> entries are integers.  The right-hand sides are the first NRHS 
-*> columns of M * the identity matrix, and the solutions are the 
+*> entries are integers.  The right-hand sides are the first NRHS
+*> columns of M * the identity matrix, and the solutions are the
 *> first NRHS columns of the inverse Hilbert matrix.
 *>
 *> The condition number of the Hilbert matrix grows exponentially with
@@ -36,7 +36,7 @@ C> \brief \b DLAHILB
 *> generated exactly without extra precision.  Precision is exhausted
 *> when the largest entry in the inverse Hilbert matrix is greater than
 *> 2 to the power of the number of bits in the fraction of the data type
-*> used plus one, which is 24 for single precision.  
+*> used plus one, which is 24 for single precision.
 *>
 *> In single, the generated solution is exact for N <= 6 and has
 *> small componentwise error for 7 <= N <= 11.
@@ -50,7 +50,7 @@ C> \brief \b DLAHILB
 *>          N is INTEGER
 *>          The dimension of the matrix A.
 *> \endverbatim
-*>      
+*>
 *> \param[in] NRHS
 *> \verbatim
 *>          NRHS is INTEGER
@@ -112,22 +112,22 @@ C> \brief \b DLAHILB
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
-*> \date November 2011
+*> \date November 2017
 *
 *> \ingroup double_matgen
 *
 *  =====================================================================
       SUBROUTINE DLAHILB( N, NRHS, A, LDA, X, LDX, B, LDB, WORK, INFO)
 *
-*  -- LAPACK test routine (version 3.4.0) --
+*  -- LAPACK test routine (version 3.8.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
+*     November 2017
 *
 *     .. Scalar Arguments ..
       INTEGER N, NRHS, LDA, LDX, LDB, INFO
@@ -140,8 +140,7 @@ C> \brief \b DLAHILB
       INTEGER TM, TI, R
       INTEGER M
       INTEGER I, J
-      COMPLEX*16 TMP
-
+*     ..
 *     .. Parameters ..
 *     NMAX_EXACT   the largest dimension where the generated data is
 *                  exact.
@@ -149,7 +148,9 @@ C> \brief \b DLAHILB
 *                  a small componentwise relative error.
       INTEGER NMAX_EXACT, NMAX_APPROX
       PARAMETER (NMAX_EXACT = 6, NMAX_APPROX = 11)
-
+*     ..
+*     .. External Subroutines ..
+      EXTERNAL XERBLA
 *     ..
 *     .. External Functions
       EXTERNAL DLASET
@@ -178,7 +179,7 @@ C> \brief \b DLAHILB
       IF (N .GT. NMAX_EXACT) THEN
          INFO = 1
       END IF
-
+*
 *     Compute M = the LCM of the integers [1, 2*N-1].  The largest
 *     reasonable N is small enough that integers suffice (up to N = 11).
       M = 1
@@ -193,18 +194,17 @@ C> \brief \b DLAHILB
          END DO
          M = (M / TI) * I
       END DO
-
+*
 *     Generate the scaled Hilbert matrix in A
       DO J = 1, N
          DO I = 1, N
             A(I, J) = DBLE(M) / (I + J - 1)
          END DO
       END DO
-
+*
 *     Generate matrix B as simply the first NRHS columns of M * the
 *     identity.
-      TMP = DBLE(M)
-      CALL DLASET('Full', N, NRHS, 0.0D+0, TMP, B, LDB)
+      CALL DLASET('Full', N, NRHS, 0.0D+0, DBLE(M), B, LDB)
 
 *     Generate the true solutions in X.  Because B = the first NRHS
 *     columns of M*I, the true solutions are just the first NRHS columns
@@ -214,12 +214,12 @@ C> \brief \b DLAHILB
          WORK(J) = (  ( (WORK(J-1)/(J-1)) * (J-1 - N) ) /(J-1)  )
      $        * (N +J -1)
       END DO
-      
+*
       DO J = 1, NRHS
          DO I = 1, N
             X(I, J) = (WORK(I)*WORK(J)) / (I + J - 1)
          END DO
       END DO
-
+*
       END
 

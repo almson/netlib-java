@@ -14,14 +14,9 @@ There is no official C interface to ARPACK:
 
 Files extracted from:
 
-  http://www.netlib.org/blas/blas.tgz
-  http://www.netlib.org/blas/blast-forum/cblas.tgz
-  
-  http://www.netlib.org/lapack/lapack-3.4.2.tgz (from various folders)
-  http://www.netlib.org/lapack/lapacke_mangling.h (missing file)
-  
-  http://forge.scilab.org/index.php/p/arpack-ng/downloads/607/
-  http://www.caam.rice.edu/software/ARPACK/ARPACK++/arpack++.tar.gz (modified arpack.h)
+  https://github.com/Reference-LAPACK/lapack/archive/v3.9.0.tar.gz
+  https://github.com/Reference-LAPACK/lapack/commit/87536aa3.patch
+  https://github.com/opencollab/arpack-ng#commit=7b7ce1a46e3f8e6393226c2db85cc457ddcdb16d  (v3.8.0)
 
 Complex and double complex routines are not included because they are not
 supported by netlib-java.
@@ -30,10 +25,3 @@ The following files have been removed because they don't compile:
 
 BLAS/xerbla.c
 LAPACK/xerbla.f
-LAPACK/*_extended.f
-LAPACK/{d,s}{gb,ge,po,sy}{rfs,svx}x.f
-LAPACKE/lapacke_{d,s}{gb,ge,po,sy}{rfs,svx}x{_work,}.c
-
-
-LAPACK ships with a bundled version of BLAS, but we use the original BLAS.
-Likewise for ARPACK and BLAS/LAPACK.

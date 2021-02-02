@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function sorcsd
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated June 2017
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_sorcsd( int matrix_order, char jobu1, char jobu2,
+lapack_int LAPACKE_sorcsd( int matrix_layout, char jobu1, char jobu2,
                            char jobv1t, char jobv2t, char trans, char signs,
                            lapack_int m, lapack_int p, lapack_int q, float* x11,
                            lapack_int ldx11, float* x12, lapack_int ldx12,
@@ -48,38 +48,41 @@ lapack_int LAPACKE_sorcsd( int matrix_order, char jobu1, char jobu2,
     lapack_int* iwork = NULL;
     float* work = NULL;
     float work_query;
-    lapack_int nrows_x11, nrows_x12, nrows_x21, nrows_x22;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    int lapack_layout;
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_sorcsd", -1 );
         return -1;
     }
+    if( LAPACKE_lsame( trans, 'n' ) && matrix_layout == LAPACK_COL_MAJOR ) {
+        lapack_layout = LAPACK_COL_MAJOR;
+    } else {
+        lapack_layout = LAPACK_ROW_MAJOR;
+    }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    nrows_x11 = ( LAPACKE_lsame( trans, 'n' ) ? p : q);
-    nrows_x12 = ( LAPACKE_lsame( trans, 'n' ) ? p : m-q);
-    nrows_x21 = ( LAPACKE_lsame( trans, 'n' ) ? m-p : q);
-    nrows_x22 = ( LAPACKE_lsame( trans, 'n' ) ? m-p : m-q);
-    if( LAPACKE_sge_nancheck( matrix_order, nrows_x11, q, x11, ldx11 ) ) {
-        return -11;
-    }
-    if( LAPACKE_sge_nancheck( matrix_order, nrows_x12, m-q, x12, ldx12 ) ) {
-        return -13;
-    }
-    if( LAPACKE_sge_nancheck( matrix_order, nrows_x21, q, x21, ldx21 ) ) {
-        return -15;
-    }
-    if( LAPACKE_sge_nancheck( matrix_order, nrows_x22, m-q, x22, ldx22 ) ) {
-        return -17;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        if( LAPACKE_sge_nancheck( lapack_layout, p, q, x11, ldx11 ) ) {
+            return -11;
+        }
+        if( LAPACKE_sge_nancheck( lapack_layout, p, m-q, x12, ldx12 ) ) {
+            return -13;
+        }
+        if( LAPACKE_sge_nancheck( lapack_layout, m-p, q, x21, ldx21 ) ) {
+            return -15;
+        }
+        if( LAPACKE_sge_nancheck( lapack_layout, m-p, m-q, x22, ldx22 ) ) {
+            return -17;
+        }
     }
 #endif
     /* Allocate memory for working array(s) */
-    iwork = (lapack_int*)LAPACKE_malloc( sizeof(lapack_int) * MAX(1,m-q) );
+    iwork = (lapack_int*)LAPACKE_malloc( sizeof(lapack_int) * MAX(1,m-MIN(MIN(p,m-p),MIN(q,m-q))) );
     if( iwork == NULL ) {
         info = LAPACK_WORK_MEMORY_ERROR;
         goto exit_level_0;
     }
     /* Query optimal working array(s) size */
-    info = LAPACKE_sorcsd_work( matrix_order, jobu1, jobu2, jobv1t, jobv2t,
+    info = LAPACKE_sorcsd_work( matrix_layout, jobu1, jobu2, jobv1t, jobv2t,
                                 trans, signs, m, p, q, x11, ldx11, x12, ldx12,
                                 x21, ldx21, x22, ldx22, theta, u1, ldu1, u2,
                                 ldu2, v1t, ldv1t, v2t, ldv2t, &work_query,
@@ -95,7 +98,7 @@ lapack_int LAPACKE_sorcsd( int matrix_order, char jobu1, char jobu2,
         goto exit_level_1;
     }
     /* Call middle-level interface */
-    info = LAPACKE_sorcsd_work( matrix_order, jobu1, jobu2, jobv1t, jobv2t,
+    info = LAPACKE_sorcsd_work( matrix_layout, jobu1, jobu2, jobv1t, jobv2t,
                                 trans, signs, m, p, q, x11, ldx11, x12, ldx12,
                                 x21, ldx21, x22, ldx22, theta, u1, ldu1, u2,
                                 ldu2, v1t, ldv1t, v2t, ldv2t, work, lwork,

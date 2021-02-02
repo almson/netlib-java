@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function strrfs
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated November 2015
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_strrfs( int matrix_order, char uplo, char trans, char diag,
+lapack_int LAPACKE_strrfs( int matrix_layout, char uplo, char trans, char diag,
                            lapack_int n, lapack_int nrhs, const float* a,
                            lapack_int lda, const float* b, lapack_int ldb,
                            const float* x, lapack_int ldx, float* ferr,
@@ -42,20 +42,22 @@ lapack_int LAPACKE_strrfs( int matrix_order, char uplo, char trans, char diag,
     lapack_int info = 0;
     lapack_int* iwork = NULL;
     float* work = NULL;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_strrfs", -1 );
         return -1;
     }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    if( LAPACKE_str_nancheck( matrix_order, uplo, diag, n, a, lda ) ) {
-        return -7;
-    }
-    if( LAPACKE_sge_nancheck( matrix_order, n, nrhs, b, ldb ) ) {
-        return -9;
-    }
-    if( LAPACKE_sge_nancheck( matrix_order, n, nrhs, x, ldx ) ) {
-        return -11;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        if( LAPACKE_str_nancheck( matrix_layout, uplo, diag, n, a, lda ) ) {
+            return -7;
+        }
+        if( LAPACKE_sge_nancheck( matrix_layout, n, nrhs, b, ldb ) ) {
+            return -9;
+        }
+        if( LAPACKE_sge_nancheck( matrix_layout, n, nrhs, x, ldx ) ) {
+            return -11;
+        }
     }
 #endif
     /* Allocate memory for working array(s) */
@@ -70,7 +72,7 @@ lapack_int LAPACKE_strrfs( int matrix_order, char uplo, char trans, char diag,
         goto exit_level_1;
     }
     /* Call middle-level interface */
-    info = LAPACKE_strrfs_work( matrix_order, uplo, trans, diag, n, nrhs, a,
+    info = LAPACKE_strrfs_work( matrix_layout, uplo, trans, diag, n, nrhs, a,
                                 lda, b, ldb, x, ldx, ferr, berr, work, iwork );
     /* Release memory and exit */
     LAPACKE_free( work );

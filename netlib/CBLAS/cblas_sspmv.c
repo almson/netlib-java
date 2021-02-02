@@ -8,8 +8,8 @@
  */
 #include "cblas.h"
 #include "cblas_f77.h"
-void cblas_sspmv(const enum CBLAS_ORDER order,
-                 const enum CBLAS_UPLO Uplo, const int N,
+void cblas_sspmv(const CBLAS_LAYOUT layout,
+                 const CBLAS_UPLO Uplo, const int N,
                  const float alpha, const float  *AP,
                  const float  *X, const int incX, const float beta,
                  float  *Y, const int incY)
@@ -18,7 +18,7 @@ void cblas_sspmv(const enum CBLAS_ORDER order,
 #ifdef F77_CHAR
    F77_CHAR F77_UL;
 #else
-   #define F77_UL &UL   
+   #define F77_UL &UL
 #endif
 #ifdef F77_INT
    F77_INT F77_N=N, F77_incX=incX, F77_incY=incY;
@@ -32,11 +32,11 @@ void cblas_sspmv(const enum CBLAS_ORDER order,
    RowMajorStrg = 0;
 
    CBLAS_CallFromC = 1;
-   if (order == CblasColMajor)
+   if (layout == CblasColMajor)
    {
       if (Uplo == CblasUpper) UL = 'U';
       else if (Uplo == CblasLower) UL = 'L';
-      else 
+      else
       {
          cblas_xerbla(2, "cblas_sspmv","Illegal Uplo setting, %d\n",Uplo );
          CBLAS_CallFromC = 0;
@@ -46,15 +46,15 @@ void cblas_sspmv(const enum CBLAS_ORDER order,
       #ifdef F77_CHAR
          F77_UL = C2F_CHAR(&UL);
       #endif
-      F77_sspmv(F77_UL, &F77_N, &alpha, AP, X,  
+      F77_sspmv(F77_UL, &F77_N, &alpha, AP, X,
                      &F77_incX, &beta, Y, &F77_incY);
    }
-   else if (order == CblasRowMajor)
+   else if (layout == CblasRowMajor)
    {
       RowMajorStrg = 1;
       if (Uplo == CblasUpper) UL = 'L';
       else if (Uplo == CblasLower) UL = 'U';
-      else 
+      else
       {
          cblas_xerbla(2, "cblas_sspmv","Illegal Uplo setting, %d\n", Uplo);
          CBLAS_CallFromC = 0;
@@ -64,10 +64,10 @@ void cblas_sspmv(const enum CBLAS_ORDER order,
       #ifdef F77_CHAR
          F77_UL = C2F_CHAR(&UL);
       #endif
-      F77_sspmv(F77_UL, &F77_N, &alpha, 
+      F77_sspmv(F77_UL, &F77_N, &alpha,
                      AP, X,&F77_incX, &beta, Y, &F77_incY);
    }
-   else cblas_xerbla(1, "cblas_sspmv", "Illegal Order setting, %d\n", order);
+   else cblas_xerbla(1, "cblas_sspmv", "Illegal layout setting, %d\n", layout);
    CBLAS_CallFromC = 0;
    RowMajorStrg = 0;
 }

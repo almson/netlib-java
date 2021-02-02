@@ -2,24 +2,24 @@
 *
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
 *> \htmlonly
-*> Download SGEBAL + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/sgebal.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/sgebal.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/sgebal.f"> 
+*> Download SGEBAL + dependencies
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/sgebal.f">
+*> [TGZ]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/sgebal.f">
+*> [ZIP]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/sgebal.f">
 *> [TXT]</a>
-*> \endhtmlonly 
+*> \endhtmlonly
 *
 *  Definition:
 *  ===========
 *
 *       SUBROUTINE SGEBAL( JOB, N, A, LDA, ILO, IHI, SCALE, INFO )
-* 
+*
 *       .. Scalar Arguments ..
 *       CHARACTER          JOB
 *       INTEGER            IHI, ILO, INFO, LDA, N
@@ -27,7 +27,7 @@
 *       .. Array Arguments ..
 *       REAL               A( LDA, * ), SCALE( * )
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -116,12 +116,12 @@
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
-*> \date November 2011
+*> \date December 2016
 *
 *> \ingroup realGEcomputational
 *
@@ -160,10 +160,10 @@
 *  =====================================================================
       SUBROUTINE SGEBAL( JOB, N, A, LDA, ILO, IHI, SCALE, INFO )
 *
-*  -- LAPACK computational routine (version 3.4.0) --
+*  -- LAPACK computational routine (version 3.7.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
+*     December 2016
 *
 *     .. Scalar Arguments ..
       CHARACTER          JOB
@@ -192,16 +192,14 @@
 *     .. External Functions ..
       LOGICAL            SISNAN, LSAME
       INTEGER            ISAMAX
-      REAL               SLAMCH
-      EXTERNAL           SISNAN, LSAME, ISAMAX, SLAMCH
+      REAL               SLAMCH, SNRM2
+      EXTERNAL           SISNAN, LSAME, ISAMAX, SLAMCH, SNRM2
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           SSCAL, SSWAP, XERBLA
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          ABS, MAX, MIN
-*     ..
-*     .. Executable Statements ..
 *
 *     Test the input parameters
 *
@@ -316,15 +314,9 @@
       NOCONV = .FALSE.
 *
       DO 200 I = K, L
-         C = ZERO
-         R = ZERO
 *
-         DO 150 J = K, L
-            IF( J.EQ.I )
-     $         GO TO 150
-            C = C + ABS( A( J, I ) )
-            R = R + ABS( A( I, J ) )
-  150    CONTINUE
+         C = SNRM2( L-K+1, A( K, I ), 1 )
+         R = SNRM2( L-K+1, A( I, K ), LDA )
          ICA = ISAMAX( L, A( 1, I ), 1 )
          CA = ABS( A( ICA, I ) )
          IRA = ISAMAX( N-K+1, A( I, K ), LDA )

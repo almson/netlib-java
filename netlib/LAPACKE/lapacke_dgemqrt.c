@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2010, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,33 +28,38 @@
 ******************************************************************************
 * Contents: Native high-level C interface to LAPACK function dgemqrt
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated June 2016
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_dgemqrt( int matrix_order, char side, char trans,
+lapack_int LAPACKE_dgemqrt( int matrix_layout, char side, char trans,
                             lapack_int m, lapack_int n, lapack_int k,
                             lapack_int nb, const double* v, lapack_int ldv,
                             const double* t, lapack_int ldt, double* c,
                             lapack_int ldc )
 {
+    lapack_int nrows_v;
     lapack_int info = 0;
     double* work = NULL;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_dgemqrt", -1 );
         return -1;
     }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    if( LAPACKE_dge_nancheck( matrix_order, m, n, c, ldc ) ) {
-        return -12;
-    }
-    if( LAPACKE_dge_nancheck( matrix_order, ldt, nb, t, ldt ) ) {
-        return -10;
-    }
-    if( LAPACKE_dge_nancheck( matrix_order, ldv, k, v, ldv ) ) {
-        return -8;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        nrows_v = LAPACKE_lsame( side, 'L' ) ? m :
+                             ( LAPACKE_lsame( side, 'R' ) ? n : 0 );
+        if( LAPACKE_dge_nancheck( matrix_layout, m, n, c, ldc ) ) {
+            return -12;
+        }
+        if( LAPACKE_dge_nancheck( matrix_layout, nb, k, t, ldt ) ) {
+            return -10;
+        }
+        if( LAPACKE_dge_nancheck( matrix_layout, nrows_v, k, v, ldv ) ) {
+            return -8;
+        }
     }
 #endif
     /* Allocate memory for working array(s) */
@@ -64,7 +69,7 @@ lapack_int LAPACKE_dgemqrt( int matrix_order, char side, char trans,
         goto exit_level_0;
     }
     /* Call middle-level interface */
-    info = LAPACKE_dgemqrt_work( matrix_order, side, trans, m, n, k, nb, v, ldv,
+    info = LAPACKE_dgemqrt_work( matrix_layout, side, trans, m, n, k, nb, v, ldv,
                                  t, ldt, c, ldc, work );
     /* Release memory and exit */
     LAPACKE_free( work );

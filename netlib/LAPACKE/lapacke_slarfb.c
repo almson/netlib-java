@@ -1,5 +1,5 @@
 /*****************************************************************************
-  Copyright (c) 2011, Intel Corp.
+  Copyright (c) 2014, Intel Corp.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -28,77 +28,91 @@
 *****************************************************************************
 * Contents: Native high-level C interface to LAPACK function slarfb
 * Author: Intel Corporation
-* Generated November, 2011
+* Generated June 2017
 *****************************************************************************/
 
 #include "lapacke_utils.h"
 
-lapack_int LAPACKE_slarfb( int matrix_order, char side, char trans, char direct,
+lapack_int LAPACKE_slarfb( int matrix_layout, char side, char trans, char direct,
                            char storev, lapack_int m, lapack_int n,
                            lapack_int k, const float* v, lapack_int ldv,
                            const float* t, lapack_int ldt, float* c,
                            lapack_int ldc )
 {
     lapack_int info = 0;
-    lapack_int ldwork = ( side=='l')?n:(( side=='r')?m:1);
+    lapack_int ldwork;
     float* work = NULL;
     lapack_int ncols_v, nrows_v;
-    if( matrix_order != LAPACK_COL_MAJOR && matrix_order != LAPACK_ROW_MAJOR ) {
+    if( matrix_layout != LAPACK_COL_MAJOR && matrix_layout != LAPACK_ROW_MAJOR ) {
         LAPACKE_xerbla( "LAPACKE_slarfb", -1 );
         return -1;
     }
 #ifndef LAPACK_DISABLE_NAN_CHECK
-    /* Optionally check input matrices for NaNs */
-    ncols_v = LAPACKE_lsame( storev, 'c' ) ? k :
-                         ( ( LAPACKE_lsame( storev, 'r' ) &&
-                         LAPACKE_lsame( side, 'l' ) ) ? m :
-                         ( ( LAPACKE_lsame( storev, 'r' ) &&
-                         LAPACKE_lsame( side, 'r' ) ) ? n : 1) );
-    nrows_v = ( LAPACKE_lsame( storev, 'c' ) &&
-                         LAPACKE_lsame( side, 'l' ) ) ? m :
-                         ( ( LAPACKE_lsame( storev, 'c' ) &&
-                         LAPACKE_lsame( side, 'r' ) ) ? n :
-                         ( LAPACKE_lsame( storev, 'r' ) ? k : 1) );
-    if( LAPACKE_sge_nancheck( matrix_order, m, n, c, ldc ) ) {
-        return -13;
-    }
-    if( LAPACKE_sge_nancheck( matrix_order, k, k, t, ldt ) ) {
-        return -11;
-    }
-    if( LAPACKE_lsame( storev, 'c' ) && LAPACKE_lsame( direct, 'f' ) ) {
-        if( LAPACKE_str_nancheck( matrix_order, 'l', 'u', k, v, ldv ) )
-            return -9;
-        if( LAPACKE_sge_nancheck( matrix_order, nrows_v-k, ncols_v, &v[k*ldv],
-            ldv ) )
-            return -9;
-    } else if( LAPACKE_lsame( storev, 'c' ) && LAPACKE_lsame( direct, 'b' ) ) {
-        if( k > nrows_v ) {
-            LAPACKE_xerbla( "LAPACKE_slarfb", -8 );
-            return -8;
+    if( LAPACKE_get_nancheck() ) {
+        /* Optionally check input matrices for NaNs */
+        lapack_int lrv, lcv;  /* row, column stride */
+        if( matrix_layout == LAPACK_COL_MAJOR ) {
+            lrv = 1;
+            lcv = ldv;
+        } else {
+            lrv = ldv;
+            lcv = 1;
         }
-        if( LAPACKE_str_nancheck( matrix_order, 'u', 'u', k,
-            &v[(nrows_v-k)*ldv], ldv ) )
-            return -9;
-        if( LAPACKE_sge_nancheck( matrix_order, nrows_v-k, ncols_v, v, ldv ) )
-            return -9;
-    } else if( LAPACKE_lsame( storev, 'r' ) && LAPACKE_lsame( direct, 'f' ) ) {
-        if( LAPACKE_str_nancheck( matrix_order, 'u', 'u', k, v, ldv ) )
-            return -9;
-        if( LAPACKE_sge_nancheck( matrix_order, nrows_v, ncols_v-k, &v[k],
-            ldv ) )
-            return -9;
-    } else if( LAPACKE_lsame( storev, 'r' ) && LAPACKE_lsame( direct, 'f' ) ) {
-        if( k > ncols_v ) {
-            LAPACKE_xerbla( "LAPACKE_slarfb", -8 );
-            return -8;
+        ncols_v =     LAPACKE_lsame( storev, 'c' ) ? k :
+                  ( ( LAPACKE_lsame( storev, 'r' ) && LAPACKE_lsame( side, 'l' ) ) ? m :
+                  ( ( LAPACKE_lsame( storev, 'r' ) && LAPACKE_lsame( side, 'r' ) ) ? n : 1) );
+
+        nrows_v =   ( LAPACKE_lsame( storev, 'c' ) && LAPACKE_lsame( side, 'l' ) ) ? m :
+                  ( ( LAPACKE_lsame( storev, 'c' ) && LAPACKE_lsame( side, 'r' ) ) ? n :
+                    ( LAPACKE_lsame( storev, 'r' ) ? k : 1) );
+        if( LAPACKE_sge_nancheck( matrix_layout, m, n, c, ldc ) ) {
+            return -13;
         }
-        if( LAPACKE_str_nancheck( matrix_order, 'l', 'u', k, &v[ncols_v-k],
-            ldv ) )
-            return -9;
-        if( LAPACKE_sge_nancheck( matrix_order, nrows_v, ncols_v-k, v, ldv ) )
-            return -9;
+        if( LAPACKE_sge_nancheck( matrix_layout, k, k, t, ldt ) ) {
+            return -11;
+        }
+        if( LAPACKE_lsame( storev, 'c' ) && LAPACKE_lsame( direct, 'f' ) ) {
+            if( LAPACKE_str_nancheck( matrix_layout, 'l', 'u', k, v, ldv ) )
+                return -9;
+            if( LAPACKE_sge_nancheck( matrix_layout, nrows_v-k, ncols_v,
+                                      &v[k*lrv], ldv ) )
+                return -9;
+        } else if( LAPACKE_lsame( storev, 'c' ) && LAPACKE_lsame( direct, 'b' ) ) {
+            if( k > nrows_v ) {
+                LAPACKE_xerbla( "LAPACKE_slarfb", -8 );
+                return -8;
+            }
+            if( LAPACKE_str_nancheck( matrix_layout, 'u', 'u', k,
+                                      &v[(nrows_v-k)*lrv], ldv ) )
+                return -9;
+            if( LAPACKE_sge_nancheck( matrix_layout, nrows_v-k, ncols_v, v, ldv ) )
+                return -9;
+        } else if( LAPACKE_lsame( storev, 'r' ) && LAPACKE_lsame( direct, 'f' ) ) {
+            if( LAPACKE_str_nancheck( matrix_layout, 'u', 'u', k, v, ldv ) )
+                return -9;
+            if( LAPACKE_sge_nancheck( matrix_layout, nrows_v, ncols_v-k,
+                                      &v[k*lrv], ldv ) )
+                return -9;
+        } else if( LAPACKE_lsame( storev, 'r' ) && LAPACKE_lsame( direct, 'b' ) ) {
+            if( k > ncols_v ) {
+                LAPACKE_xerbla( "LAPACKE_slarfb", -8 );
+                return -8;
+            }
+            if( LAPACKE_str_nancheck( matrix_layout, 'l', 'u', k,
+                                      &v[(ncols_v-k)*lcv], ldv ) )
+                return -9;
+            if( LAPACKE_sge_nancheck( matrix_layout, nrows_v, ncols_v-k, v, ldv ) )
+                return -9;
+        }
     }
 #endif
+    if( LAPACKE_lsame( side, 'l' ) ) {
+        ldwork = n;
+    } else if( LAPACKE_lsame( side, 'r' ) ) {
+        ldwork = m;
+    } else {
+        ldwork = 1;
+    }
     /* Allocate memory for working array(s) */
     work = (float*)LAPACKE_malloc( sizeof(float) * ldwork * MAX(1,k) );
     if( work == NULL ) {
@@ -106,7 +120,7 @@ lapack_int LAPACKE_slarfb( int matrix_order, char side, char trans, char direct,
         goto exit_level_0;
     }
     /* Call middle-level interface */
-    info = LAPACKE_slarfb_work( matrix_order, side, trans, direct, storev, m, n,
+    info = LAPACKE_slarfb_work( matrix_layout, side, trans, direct, storev, m, n,
                                 k, v, ldv, t, ldt, c, ldc, work, ldwork );
     /* Release memory and exit */
     LAPACKE_free( work );
